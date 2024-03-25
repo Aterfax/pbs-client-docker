@@ -1,0 +1,19 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+# Define a logging function to prefix output to the docker logs.
+output_to_log() {
+    sed  's/^/[setup_check] /'
+}
+# Redirect all subsequent command outputs to output_to_log
+exec > >(output_to_log)
+
+# Set up error handling
+handle_error() {
+    local exit_code="$?"
+    echo -e "Error occurred (Exit code: $exit_code)"
+    exit "$exit_code"
+}
+trap handle_error ERR
+
+source /etc/s6-overlay/s6-rc.d/setup_check/run_include

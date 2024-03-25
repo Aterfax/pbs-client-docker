@@ -1,0 +1,39 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+echo -e "## Conducting variable checks."
+
+# If an API key is set we should use it over any password / username.
+if [ -n "$PBS_API_KEY_SECRET" ]; then
+    PBS_PASSWORD="${PBS_API_KEY_SECRET}"
+fi
+
+if [ -n "$PBS_API_KEY_NAME" ]; then
+    PBS_USER="${PBS_API_KEY_NAME}"
+fi
+
+if [ -z "$PBS_USER" ]; then
+    echo "Error: PBS_USER is not set. This variable is required, please ensure it is set, or set PBS_API_KEY_NAME."
+    exit 1
+fi
+
+if [ -z "$PBS_ENDPOINT" ]; then
+    echo "Error: PBS_ENDPOINT is not set. This variable is required, please ensure it is set."
+    exit 1
+fi
+
+if [ -z "$PBS_DATASTORE" ]; then
+    echo "Error: PBS_DATASTORE is not set. This variable is required, please ensure it is set."
+    exit 1
+fi
+
+if [ -z "$PBS_PASSWORD" ]; then
+    echo "Error: PBS_PASSWORD is not set. This variable is required, please ensure it is set, or set PBS_API_KEY_SECRET."
+    exit 1
+fi
+
+HEALTHCHECKSURL="${HEALTHCHECKSHOSTNAME}/ping/${HEALTHCHECKSUUID}"
+
+export HEALTHCHECKSURL="${HEALTHCHECKSURL}"
+export PBS_PASSWORD="${PBS_PASSWORD}"
+export PBS_REPOSITORY="${PBS_USER}@${PBS_ENDPOINT}:${PBS_DATASTORE}"

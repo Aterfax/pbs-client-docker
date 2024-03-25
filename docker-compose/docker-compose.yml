@@ -1,0 +1,16 @@
+version: '3.3'
+services:
+  pbs-client:
+    image: aterfax/pbs-client
+    container_name: pbs-client
+    hostname: pbs-client
+    restart: unless-stopped
+    env_file:
+      - .env
+    tmpfs:
+      - /tmp
+    volumes:
+      - ./pbsconfig/:/root/.config/proxmox-backup/
+      - ./backups/test1:/backups/test1
+      - ./backups/test2:/backups/test2
+      - ./backups/test3:/backups/test3            

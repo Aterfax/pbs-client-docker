@@ -1,0 +1,10 @@
+#!/usr/bin/expect -f
+set random_password [exec openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | head -c 64]
+spawn proxmox-backup-client key create
+expect "Encryption Key Password:"
+send "$random_password\r"
+expect "Verify Password:"
+send "$random_password\r"
+expect eof
+puts "\n### IMPORTANT: New client encryption key password: $random_password ###"
+puts "\n### IMPORTANT: Make sure to backup the client encryption keyfile and password. ###"

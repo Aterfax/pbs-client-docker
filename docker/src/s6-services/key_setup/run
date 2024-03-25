@@ -1,0 +1,46 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+# Define a logging function to prefix output to the docker logs.
+output_to_log() {
+    sed  's/^/[key_setup] /'
+}
+# Redirect all subsequent command outputs to output_to_log
+exec > >(output_to_log)
+
+# Set up error handling
+handle_error() {
+    local exit_code="$?"
+    echo -e "Error occurred (Exit code: $exit_code)"
+    exit "$exit_code"
+}
+trap handle_error ERR
+
+client_encryption_keyfile="/root/.config/proxmox-backup/encryption-key.json"
+master_private_keyfile="/root/.config/proxmox-backup/master-private.pem"
+master_public_keyfile="/root/.config/proxmox-backup/master-public.pem"
+
+expect="/usr/bin/expect"
+
+# Check if client encryption keyfile exists and do stuff.
+if [ -f "$client_encryption_keyfile" ]; then
+    echo "Client encryption keyfile exists. Skipping client encryption keyfile creation."
+else
+    echo "Client encryption keyfile does not exist. Creating new client encryption keyfile."
+    $expect /etc/s6-overlay/s6-rc.d/key_setup/client_key
+fi
+
+# Check if both Master keyfiles exist and do stuff.
+if [ -f "$master_private_keyfile" ] && [ -f "$master_public_keyfile" ]; then
+    echo "Both master private and public keys exist. Skipping client Master keyfiles creation."
+    
+elif [ ! -f "$master_private_keyfile" ] && [ ! -f "$master_public_keyfile" ]; then
+    echo "Both master private and public keys do not exist. Creating master keyfiles new pair."
+    cd /root/.config/proxmox-backup/ && $expect /etc/s6-overlay/s6-rc.d/key_setup/client_master_key
+    
+elif [ ! -f "$master_private_keyfile" ] || [ ! -f "$master_public_keyfile" ]; then
+    echo "One of the master keyfiles is missing. Error! User intervention required. Ensure correct files present, or remove both: \n"
+    echo "$master_private_keyfile \n"
+    echo "$master_oublic_keyfile \n"
+    echo "To allow for automatic key recreation."
+fi
