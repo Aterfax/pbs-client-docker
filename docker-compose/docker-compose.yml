@@ -11,6 +11,6 @@ services:
       - /tmp
     volumes:
       - ./pbsconfig/:/root/.config/proxmox-backup/
-      - ./backups/test1:/backups/test1
-      - ./backups/test2:/backups/test2
-      - ./backups/test3:/backups/test3            
+      - ./backups/test1:/backups/test1:ro
+      - ./backups/test2:/backups/test2:ro
+      - ./backups/test3:/backups/test3:ro
