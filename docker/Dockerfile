@@ -1,5 +1,5 @@
 #
-# Proxmox Backup Solution Client Dockerd Dockerfile.
+# Proxmox Backup Solution Client Dockerfile.
 #
 #
 FROM ghcr.io/linuxserver/baseimage-debian:bookworm
