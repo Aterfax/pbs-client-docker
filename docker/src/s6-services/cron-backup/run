@@ -23,7 +23,7 @@ trap handle_error ERR
 validate_cron_expression() {
     local cron_expression="$1"
     # https://stackoverflow.com/a/57639657
-    local regex='(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)*\d+|(\d+(/|-)\d+)|\d+|\*) ?){5,7})'
+    local regex='(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})'
 
     if echo "$cron_expression" | grep -Pq "$regex"; then
         return 0  # Valid cron expression
