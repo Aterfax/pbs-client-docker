@@ -22,8 +22,9 @@ trap handle_error ERR
 
 validate_cron_expression() {
     local cron_expression="$1"
-    # https://stackoverflow.com/a/57639657
-    local regex='(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)+\d+|(\d+(\/|-)\d+)|\d+|\*) ?){5,7})'
+    # https://stackoverflow.com/a/63729682
+    # https://regex101.com/r/oGYmrm/1
+    local regex='^((((\d+,)+\d+|(\d+(\/|-|#)\d+)|\d+L?|\*(\/\d+)?|L(-\d+)?|\?|[A-Z]{3}(-[A-Z]{3})?) ?){5,7})|(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)$'
 
     if echo "$cron_expression" | grep -Pq "$regex"; then
         return 0  # Valid cron expression
@@ -34,7 +35,7 @@ validate_cron_expression() {
 
 if ! validate_cron_expression "$CRON_SCHEDULE"; then
     echo -e "Invalid cron expression: $CRON_SCHEDULE \n"
-    echo "Please define a valid cron time expression for CRON_SCHEDULE, e.g. \"*/5 * * * *\" "
+    echo "Please define a valid cron time expression for CRON_SCHEDULE, e.g. \"*/5 * * * *\" as defined by https://regex101.com/r/oGYmrm/1"
     sleep 60
     exit 1
 fi
