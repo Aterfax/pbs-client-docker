@@ -1,8 +1,6 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
-echo -e "## Conducting variable checks."
-
 # If an API key is set we should use it over any password / username.
 if [ -n "$PBS_API_KEY_SECRET" ]; then
     PBS_PASSWORD="${PBS_API_KEY_SECRET}"

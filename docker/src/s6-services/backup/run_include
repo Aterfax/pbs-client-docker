@@ -8,6 +8,8 @@ path_to_filename() {
     echo "${filename}"
 }
 
+lastrunfile="/tmp/pbs_client_lastrun"
+
 BACKUP_DIRECTORIES=()
 # Iterate over each subdirectory under /backup and add its full path to the array
 for dir in /backups/*; do
@@ -16,16 +18,18 @@ for dir in /backups/*; do
     fi
 done
 
-# Print the contents of the array
-echo "## Detected backup directories:"
-echo -e "#"
-if [ ${#BACKUP_DIRECTORIES[@]} -eq 0 ]; then
-    echo "# Nothing to backup."
-else
-    for path in "${BACKUP_DIRECTORIES[@]}"; do
-        echo -e "# $path"
-    done
-    echo -e "#\n"
+# Print the contents of the array if this is first run only.
+if [ ! -e "${lastrunfile}" ]; then
+    echo "## Detected backup directories:"
+    echo -e "#"
+    if [ ${#BACKUP_DIRECTORIES[@]} -eq 0 ]; then
+        echo "# Nothing to backup."
+    else
+        for path in "${BACKUP_DIRECTORIES[@]}"; do
+            echo -e "# $path"
+        done
+        echo -e "#\n"
+    fi
 fi
 
 # Construct the directory target list with the proxmox-backup-client syntax.
@@ -43,20 +47,36 @@ if [ -n "$PBS_DATASTORE_NS" ]; then
     BACKUPCMD+=" --ns ${PBS_DATASTORE_NS}"
 fi
 
-
 # Source the variables from the setup_check scripting include file.
 source /etc/s6-overlay/s6-rc.d/setup_check/run_include
 
-echo -e "## Backing up to repository: \n# ${PBS_REPOSITORY}\n"
-echo -e "## Executing backup command: \n# ${BACKUPCMD}\n"
-
-if [ -n "$HEALTHCHECKSURL" ]; then
-    curl -fsS -m 10 --retry 5 $HEALTHCHECKSURL/start
+# Print out the repository and backup command on first run only.
+if [ ! -e "${lastrunfile}" ]; then
+    echo -e "## Backing up to repository: \n# ${PBS_REPOSITORY}\n"
+    echo -e "## Executing backup command: \n# ${BACKUPCMD}\n"
 fi
 
-${BACKUPCMD} 2>&1
-BACKUP_EXIT_CODE=$?
+# Note the first evaluation is key and will initiate backup if the user opts
+# to allow the first backup or we're
+if [ "$CRON_BACKUP_ONLY" = "0" ] || [ -e "${lastrunfile}" ]; then
+    if [ -n "$HEALTHCHECKSURL" ]; then
+        curl -fsS -m 10 --retry 5 $HEALTHCHECKSURL/start
+    fi
 
-if [ -n "$HEALTHCHECKSURL" ]; then
-    curl -fsS -m 10 --retry 5 ${HEALTHCHECKSURL}/${BACKUP_EXIT_CODE}
+    # Run the actual backup command.
+    ${BACKUPCMD} 2>&1
+    BACKUP_EXIT_CODE=$?
+
+    if [ -n "$HEALTHCHECKSURL" ]; then
+        # We pipe the exit code to healthchecks, if it isn't zero, a warning will fire.
+        curl -fsS -m 10 --retry 5 ${HEALTHCHECKSURL}/${BACKUP_EXIT_CODE}
+    fi
+elif [ "$CRON_BACKUP_ONLY" = "1" ]; then
+    echo "CRON_BACKUP_ONLY=1, skipping container start up initial backup."
+elif [ "$CRON_BACKUP_ONLY" = "0" ] || [ "$CRON_BACKUP_ONLY" = "1" ] ]; then 
+echo "CRON_BACKUP_ONLY set to invalid value, skipping container start up initial backup."
 fi
+
+# Set this so backups always happen after the first run via CRON given logic above.
+# The date may also be useful for something like a health check if I write it...
+echo "$(date +"%Y-%m-%d %H:%M:%S")" > /tmp/pbs_client_lastrun
