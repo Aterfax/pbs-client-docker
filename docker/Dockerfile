@@ -41,3 +41,6 @@ RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/backup
 
 COPY ./src/s6-services/cron-backup /etc/s6-overlay/s6-rc.d/cron-backup
 RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/cron-backup
+
+COPY ./src/helper_scripts/* /usr/local/sbin/
+RUN chmod +x /usr/local/sbin/*

@@ -1,0 +1,12 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+lastrunfile="/tmp/pbs_client_lastrun"
+
+# First run touches the file. Backups will set the date.
+#  -s checks if the file exists and is not empty.
+if [ -s "$lastrunfile" ]; then
+    cat "$lastrunfile"
+else
+    echo "The first backup since container start has not happened yet."
+fi

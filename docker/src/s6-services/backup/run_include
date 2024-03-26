@@ -67,6 +67,9 @@ if [ "$CRON_BACKUP_ONLY" = "0" ] || [ -e "${lastrunfile}" ]; then
     ${BACKUPCMD} 2>&1
     BACKUP_EXIT_CODE=$?
 
+    # First run touches the file. Backups will set the date.
+    echo "$(date +"%Y-%m-%d %H:%M:%S")" > "${lastrunfile}"
+
     if [ -n "$HEALTHCHECKSURL" ]; then
         # We pipe the exit code to healthchecks, if it isn't zero, a warning will fire.
         curl -fsS -m 10 --retry 5 ${HEALTHCHECKSURL}/${BACKUP_EXIT_CODE}
@@ -79,4 +82,5 @@ fi
 
 # Set this so backups always happen after the first run via CRON given logic above.
 # The date may also be useful for something like a health check if I write it...
-echo "$(date +"%Y-%m-%d %H:%M:%S")" > /tmp/pbs_client_lastrun
+# First run touches the file. Backups will set the date.
+touch "${lastrunfile}"
