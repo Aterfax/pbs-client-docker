@@ -1,9 +1,12 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
+# This script runs once as the container starts to get an immediate backup.
 
 # Define a logging function to prefix output to the docker logs.
 output_to_log() {
-    sed  's/^/[backup] /'
+    while IFS= read -r line; do
+        echo "[backup] $(date +"%Y-%m-%d %H:%M:%S") $line"
+    done
 }
 # Redirect all subsequent command outputs to output_to_log
 exec > >(output_to_log)
@@ -16,63 +19,4 @@ handle_error() {
 }
 trap handle_error ERR
 
-path_to_filename() {
-    local path="$1"
-    local path_no_trailing_slash="${path%/}"  # Remove the trailing slash, if any
-    local path_no_first_slash="${path_no_trailing_slash#\/}"  # Remove the first slash
-    local filename="${path_no_first_slash//\//-}"  # Replace slashes with dashes
-    echo "${filename}"
-}
-
-BACKUP_DIRECTORIES=()
-# Iterate over each subdirectory under /backup and add its full path to the array
-for dir in /backups/*; do
-    if [[ -d "$dir" ]]; then
-        BACKUP_DIRECTORIES+=("$dir/")
-    fi
-done
-
-# Print the contents of the array
-echo "## Detected backup directories:"
-echo -e "#"
-if [ ${#BACKUP_DIRECTORIES[@]} -eq 0 ]; then
-    echo "# Nothing to backup."
-else
-    for path in "${BACKUP_DIRECTORIES[@]}"; do
-        echo -e "# $path"
-    done
-    echo -e "#\n"
-fi
-
-# Construct the directory target list with the proxmox-backup-client syntax.
-# This makes 1 .pxar file per path.
-TARGETS=""
-for dir in "${BACKUP_DIRECTORIES[@]}"; do
-    TARGET=$(path_to_filename "$dir").pxar:$dir
-    TARGETS="${TARGETS} ${TARGET}"
-done
-
-# Build the backup command we want to execute. 
-BACKUPCMD="proxmox-backup-client backup ${TARGETS}"
-
-if [ -n "$PBS_DATASTORE_NS" ]; then
-    BACKUPCMD+=" --ns ${PBS_DATASTORE_NS}"
-fi
-
-
-# Source the variables from the setup_check scripting include file.
-source /etc/s6-overlay/s6-rc.d/setup_check/run_include
-
-echo -e "## Backing up to repository: \n# ${PBS_REPOSITORY}\n"
-echo -e "## Executing backup command: \n# ${BACKUPCMD}\n"
-
-if [ -n "$HEALTHCHECKSURL" ]; then
-    curl -fsS -m 10 --retry 5 $HEALTHCHECKSURL/start
-fi
-
-${BACKUPCMD} 2>&1
-BACKUP_EXIT_CODE=$?
-
-if [ -n "$HEALTHCHECKSURL" ]; then
-    curl -fsS -m 10 --retry 5 ${HEALTHCHECKSURL}/${BACKUP_EXIT_CODE}
-fi
+/etc/s6-overlay/s6-rc.d/backup/run_include

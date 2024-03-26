@@ -1,0 +1,64 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+# This script instates the cron job to take regular backups.
+
+
+# Define a logging function to prefix output to the docker logs.
+output_to_log() {
+    while IFS= read -r line; do
+        echo "[cron-backup] $(date +"%Y-%m-%d %H:%M:%S") $line"
+    done
+}
+# Redirect all subsequent command outputs to output_to_log
+exec > >(output_to_log)
+
+# Set up error handling
+handle_error() {
+    local exit_code="$?"
+    echo -e "Error occurred (Exit code: $exit_code)"
+    exit "$exit_code"
+}
+trap handle_error ERR
+
+validate_cron_expression() {
+    local cron_expression="$1"
+    # https://stackoverflow.com/a/57639657
+    local regex='(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)|((((\d+,)*\d+|(\d+(/|-)\d+)|\d+|\*) ?){5,7})'
+
+    if echo "$cron_expression" | grep -Pq "$regex"; then
+        return 0  # Valid cron expression
+    else
+        return 1  # Invalid cron expression
+    fi
+}
+
+if ! validate_cron_expression "$CRON_SCHEDULE"; then
+    echo -e "Invalid cron expression: $CRON_SCHEDULE \n"
+    echo "Please define a valid cron time expression for CRON_SCHEDULE, e.g. \"*/5 * * * *\" "
+    sleep 60
+    exit 1
+fi
+
+CRONLOG_FILE="/root/.config/proxmox-backup/cron.log"
+CRON_FILE="/etc/cron.d/cron-backup"
+CRON_LINE="${CRON_SCHEDULE} root bash -c '/etc/s6-overlay/s6-rc.d/backup/run_include'  >> $CRONLOG_FILE 2>&1 "
+TIMEOUT=60
+
+touch "${CRONLOG_FILE}"
+echo "${CRON_LINE}" > "${CRON_FILE}"
+chmod +x "${CRON_FILE}"
+
+service cron start
+echo "Cron service is now running with: \"${CRON_LINE}\" "
+
+# We only want new lines added, not existing log content on startup.
+tail -n 0 -f "${CRONLOG_FILE}" &
+
+# Check if cron service is running
+while :; do
+    if ! service cron status > /dev/null; then
+        echo "Error: Cron service is not running. Restarting cron."
+        exit 1
+    fi
+    sleep ${TIMEOUT}
+done

@@ -1,9 +1,13 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
+# This script runs once as the container starts to ensure key setup is functional
+# for backups. (Either checking keys or generating new ones).
 
 # Define a logging function to prefix output to the docker logs.
 output_to_log() {
-    sed  's/^/[key_setup] /'
+    while IFS= read -r line; do
+        echo "[key_setup] $(date +"%Y-%m-%d %H:%M:%S") $line"
+    done
 }
 # Redirect all subsequent command outputs to output_to_log
 exec > >(output_to_log)

@@ -12,7 +12,9 @@
 
 ## Longer summary
 
-This container is still a work in progress and backups are not currently cron jobbed (a backup is only taken on re/start). Reading and using the ``docker-compose\docker-compose.yml`` and example ``.env.example`` file should be illustrative on how to use this container. See also: [Using-the-DockerHub-provided-image](#Using-the-DockerHub-provided-image)
+This container is still a work in progress but the main feature (cronjob'd backups) now works. 
+
+Reading and using the ``docker-compose\docker-compose.yml`` and example ``.env.example`` file should be illustrative on how to use this container. See also: [Using-the-DockerHub-provided-image](#Using-the-DockerHub-provided-image)
 
 ## Table of Contents
 

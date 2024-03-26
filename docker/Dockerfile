@@ -7,7 +7,7 @@ FROM ghcr.io/linuxserver/baseimage-debian:bookworm
 LABEL maintainer="Aterfax"
 
 # Get initial required packages
-RUN apt-get update && apt-get install -y wget nano procps less expect
+RUN apt-get update && apt-get install -y wget cron expect
 
 # Get the Proxmox signing keys and add to trust store
 RUN curl -o /etc/apt/trusted.gpg.d/proxmox-release-bookworm.gpg https://enterprise.proxmox.com/debian/proxmox-release-bookworm.gpg && \
@@ -38,3 +38,6 @@ RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/setup_check
 
 COPY ./src/s6-services/backup /etc/s6-overlay/s6-rc.d/backup
 RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/backup
+
+COPY ./src/s6-services/cron-backup /etc/s6-overlay/s6-rc.d/cron-backup
+RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/cron-backup
