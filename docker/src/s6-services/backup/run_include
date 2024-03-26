@@ -76,8 +76,8 @@ if [ "$CRON_BACKUP_ONLY" = "0" ] || [ -e "${lastrunfile}" ]; then
     fi
 elif [ "$CRON_BACKUP_ONLY" = "1" ]; then
     echo "CRON_BACKUP_ONLY=1, skipping container start up initial backup."
-elif [ "$CRON_BACKUP_ONLY" = "0" ] || [ "$CRON_BACKUP_ONLY" = "1" ] ]; then 
-echo "CRON_BACKUP_ONLY set to invalid value, skipping container start up initial backup."
+elif [ "$CRON_BACKUP_ONLY" != "0" ] && [ "$CRON_BACKUP_ONLY" != "1" ]; then 
+    echo "CRON_BACKUP_ONLY set to invalid value, skipping container start up initial backup."
 fi
 
 # Set this so backups always happen after the first run via CRON given logic above.
