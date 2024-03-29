@@ -1,4 +1,4 @@
 # Get Github to parse some scripts correctly.
 run_include linguist-language=Shell
 run linguist-language=Shell
-docker\src\helper_scripts\* linguist-language=Shell
+docker/src/helper_scripts/* linguist-language=Shell
