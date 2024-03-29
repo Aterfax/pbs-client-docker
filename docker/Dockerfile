@@ -44,3 +44,5 @@ RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/cron-backup
 
 COPY ./src/helper_scripts/* /usr/local/sbin/
 RUN chmod +x /usr/local/sbin/*
+
+COPY ./src/branding.txt /etc/s6-overlay/s6-rc.d/init-adduser/branding
