@@ -1,0 +1,18 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+source /etc/s6-overlay/s6-rc.d/setup_check/run_include
+
+# We need to build this command in case namespaces are in use.
+LISTCMD="proxmox-backup-client snapshot list"
+if [ -n "$PBS_DATASTORE_NS" ]; then
+    LISTCMD+=" --ns ${PBS_DATASTORE_NS}"
+fi
+LISTCMD+=" --output-format json"
+
+data=$(${LISTCMD})
+host_name=$(hostname)
+echo "${data}" | jq -r --arg host "${host_name}" '
+    map(select(.["backup-id"] == $host)) | 
+    map("\(.["backup-type"])/\($host)/\(.["backup-time"] | tonumber | strftime("%Y-%m-%dT%H:%M:%SZ")) \(.size / (1024 * 1024) | tostring + " MB" | split(".") | .[0] + "." + .[1][:2] + " MB")") | 
+    join("\n")'
