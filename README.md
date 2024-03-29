@@ -8,7 +8,7 @@
 
 **Q:** What does this Docker image do? 
 
-**A:** It lets you run the Proxmox Backup Server client and backup things from any directory mounted within /backups inside the container.
+**A:** It lets you run the Proxmox Backup Server client and backup things from any directory mounted within ``/backups`` inside the container.
 
 ## Longer summary
 
