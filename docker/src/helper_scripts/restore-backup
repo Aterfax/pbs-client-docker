@@ -1,0 +1,127 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+source /etc/s6-overlay/s6-rc.d/setup_check/run_include
+
+# Function to list directories under supplied path
+list_directories() {
+    local path="$1"
+    local dirs=()
+    while IFS= read -r -d '' dir; do
+        dirs+=("$dir")
+    done < <(find "$path" -mindepth 1 -maxdepth 1 -type d -print0)
+    printf '%s\n' "${dirs[@]}"
+}
+
+# We need to build this command in case namespaces are in use.
+LISTCMD="proxmox-backup-client snapshot list"
+if [ -n "$PBS_DATASTORE_NS" ]; then
+    LISTCMD+=" --ns ${PBS_DATASTORE_NS}"
+fi
+LISTCMD+=" --output-format json"
+
+data=$(${LISTCMD})
+host_name=$(hostname)
+
+backup_times=($(echo "$data" | jq -r --arg host "$host_name" '
+    .[] |
+    select(.["backup-id"] == $host) |
+    .["backup-time"] | tonumber | strftime("%Y-%m-%dT%H:%M:%SZ")' | 
+    sort | uniq))
+
+# Display numbered list of backup times for selection
+echo "Select a backup time:"
+for ((i=0; i<${#backup_times[@]}; i++)); do
+    echo "$((i+1)). ${backup_times[i]}"
+done
+
+# Prompt to select a backup time
+read -p "Enter the number of the backup you want to select: " selection
+
+# Validate user input
+if [[ $selection =~ ^[0-9]+$ && $selection -ge 1 && $selection -le ${#backup_times[@]} ]]; then
+    selected_backup_time="${backup_times[$((selection-1))]}"
+else
+    echo "Invalid selection."
+    exit 1
+fi
+
+# Filter by the selected timestamp
+selected_backup_data=$(echo "$data" | jq -r --arg host "$host_name" --arg timestamp "$selected_backup_time" '
+    .[] |
+    select(.["backup-id"] == $host and (.["backup-time"] | tonumber | strftime("%Y-%m-%dT%H:%M:%SZ")) == $timestamp)')
+
+selected_backup_type=$(echo "$selected_backup_data" | jq -r '.["backup-type"]')
+selected_backup_id=$(echo "$selected_backup_data" | jq -r '.["backup-id"]')
+
+# Extract file list for the selected backup
+file_list=$(echo "$selected_backup_data" | jq -r '.files[].filename')
+
+# Display numbered list of files for selection
+echo "Select a file to restore:"
+IFS=$'\n' read -r -d '' -a files <<<"$file_list"
+for ((i=0; i<${#files[@]}; i++)); do
+    echo "$((i+1)). ${files[i]}"
+done
+
+# Prompt to select a file to restore
+read -p "Enter the number of the file you want to restore: " file_selection
+
+# Validate user input
+if [[ $file_selection =~ ^[0-9]+$ && $file_selection -ge 1 && $file_selection -le ${#files[@]} ]]; then
+    selected_file="${files[$((file_selection-1))]}"
+else
+    echo "Invalid selection."
+    exit 1
+fi
+
+# List directories under /backups
+echo "Select the directory to restore to:"
+directories=$(list_directories /backups)
+
+# Display numbered list of directories for selection
+IFS=$'\n' read -r -d '' -a dirs <<<"$directories"
+for ((i=0; i<${#dirs[@]}; i++)); do
+    echo "$((i+1)). ${dirs[i]}"
+done
+
+# Prompt to select a directory
+read -p "Enter the number of the directory you want to restore to: " dir_selection
+
+# Validate user input
+if [[ $dir_selection =~ ^[0-9]+$ && $dir_selection -ge 1 && $dir_selection -le ${#dirs[@]} ]]; then
+    selected_directory="${dirs[$((dir_selection-1))]}"
+    restore_path="$selected_directory/"
+else
+    echo "Invalid selection."
+    exit 1
+fi
+
+echo -e "\nSelected backup details:"
+echo "Backup Type: $selected_backup_type"
+echo "Backup Time: $selected_backup_time"
+echo "Backup Host: $selected_backup_id"
+echo "Selected File: $selected_file"
+echo "Selected Restore Path: $restore_path"
+echo ""
+
+# Check if the restore directory is writable by attempting to create a temporary file
+if ! { tempfile=$(mktemp -p "${restore_path}" .restore_test.XXXXXX) && rm -f "$tempfile"; } 2>/dev/null; then
+    echo "Error: The chosen restore directory '${restore_path}' is not writable."
+    exit 1
+fi
+
+read -rp "Are these details correct? Press Enter to continue or Ctrl+C to cancel..."
+
+#proxmox-backup-client restore host/elsa/2019-12-03T09:35:01Z root.pxar /target/path/
+# We need to build this command in case namespaces are in use.
+RESTORECMD="proxmox-backup-client restore ${selected_backup_type}/${selected_backup_id}/${selected_backup_time} ${selected_file} ${restore_path}"
+if [ -n "$RESTORECMD" ]; then
+    RESTORECMD+=" --ns ${PBS_DATASTORE_NS}"
+fi
+echo -e "\nRestore command:"
+echo "${RESTORECMD}"
+
+read -rp "Is this restore command correct? Press Enter to continue or Ctrl+C to cancel..."
+
+$RESTORECMD

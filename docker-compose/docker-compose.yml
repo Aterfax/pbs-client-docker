@@ -11,6 +11,8 @@ services:
       - /tmp
     volumes:
       - ./pbsconfig/:/root/.config/proxmox-backup/
+      # Note - if you want to restore backups make sure to change to read write below.
+      # See the 'restore-backup' command inside the container.
       - ./backups/test1:/backups/test1:ro
       - ./backups/test2:/backups/test2:ro
       - ./backups/test3:/backups/test3:ro
