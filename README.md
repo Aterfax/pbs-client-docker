@@ -14,7 +14,12 @@
 
 This container is still a work in progress but the main feature (cronjob'd backups) now works. 
 
-Reading and using the ``docker-compose\docker-compose.yml`` and example ``.env.example`` file should be illustrative on how to use this container. See also: [Using-the-DockerHub-provided-image](#Using-the-DockerHub-provided-image)
+Reading and using the ``docker-compose\docker-compose.yml`` and example ``.env.example`` file should be illustrative on how to use this container. 
+
+There are also various helper scripts available when using the shell inside the container 
+which can be seen here: https://github.com/Aterfax/pbs-client-docker/tree/main/docker/src/helper_scripts
+
+For more in depth instructions, see: [Using-the-DockerHub-provided-image](#Using-the-DockerHub-provided-image)
 
 ## Table of Contents
 
@@ -35,13 +40,15 @@ Reading and using the ``docker-compose\docker-compose.yml`` and example ``.env.e
 
 ### Using the DockerHub provided image
 
-* Run the image with the provided docker-compose file amending where needed.
-* Bind mount the folders or volumes you wish to backup into the continer's ``/backups`` directiory.
-* Supply your desired ``master-public.pem``, ``master-private.pem`` and ``encryption-key.json`` files or allow the container to automatically generate them on first run.
-  * If you do allow automatic generation passwords will be echoed to the container logs only once during first run! 
+* Run the image with the provided docker-compose file after amending it and the ``.env`` file where needed.
+  * i.e. bind mount the folders or volumes you wish to backup into the continer's ``/backups`` directiory.
+  * Supply your desired ``master-public.pem``, ``master-private.pem`` and ``encryption-key.json`` files or allow the container to automatically generate them on first run.
+* **If you do allow automatic generation, passwords will be echoed to the container logs only once during first run!**
 * Backup the ``master-public.pem``, ``master-private.pem`` and ``encryption-key.json`` files and passwords.
-* Populate the environment file with the correct ``PBS_ENCRYPTION_PASSWORD`` value.
+* Populate the environment file with the correct ``PBS_ENCRYPTION_PASSWORD`` value from the container logs or from your provided ``pem`` files.
 * Restart the container and check the logs to confirm a successful backup.
+  * You can start a backup with the ``backupnow`` command from inside the container, i.e. ``docker exec -it pbs-client backupnow``
+* Review the other helper scripts [from here](https://github.com/Aterfax/pbs-client-docker/tree/main/docker/src/helper_scripts) which are also available from the container terminal.
 
 
 ### Using a self built image
