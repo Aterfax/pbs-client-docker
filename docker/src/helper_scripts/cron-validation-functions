@@ -1,0 +1,36 @@
+#!/bin/bash
+
+validate_cron_expression() {
+    local cron_expression="$1"
+    # https://stackoverflow.com/a/63729682
+    # https://regex101.com/r/RtLgqG
+    local regex='^((((\d+,)+\d+|(\d+(\/|-|#)\d+)|\d+L?|\*(\/\d+)?|L(-\d+)?|\?|[A-Z]{3}(-[A-Z]{3})?) ?){5,7})|(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)$'
+
+    if echo "$cron_expression" | grep -Pq "$regex"; then
+        return 0  # Valid cron expression
+    else
+        return 1  # Invalid cron expression
+    fi
+}
+
+# Test valid cron expressions
+assert_valid_cron() {
+    local cron_expr="$1"
+    if validate_cron_expression "$cron_expr"; then
+        echo "PASS: '$cron_expr' is a valid cron expression."
+    else
+        echo "FAIL: '$cron_expr' is expected to be a valid cron expression but is not."
+        return 1  # Set non-zero exit status for failure
+    fi
+}
+
+# Test invalid cron expressions
+assert_invalid_cron() {
+    local cron_expr="$1"
+    if ! validate_cron_expression "$cron_expr"; then
+        echo "PASS: '$cron_expr' is an invalid cron expression."
+    else
+        echo "FAIL: '$cron_expr' is expected to be an invalid cron expression but is not."
+        return 1  # Set non-zero exit status for failure
+    fi
+}
