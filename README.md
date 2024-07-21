@@ -41,6 +41,7 @@ For more in depth instructions, see: [Using-the-DockerHub-provided-image](#Using
 ### Using the DockerHub provided image
 
 * Run the image with the provided docker-compose file after amending it and the ``.env`` file where needed.
+  * The required permissions for the API key will be "DatastoreBackup" and "DatastoreReader" on the appropriate path.
   * i.e. bind mount the folders or volumes you wish to backup into the continer's ``/backups`` directiory.
   * Supply your desired ``master-public.pem``, ``master-private.pem`` and ``encryption-key.json`` files or allow the container to automatically generate them on first run.
 * **If you do allow automatic generation, passwords will be echoed to the container logs only once during first run!**
