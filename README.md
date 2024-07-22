@@ -41,12 +41,13 @@ For more in depth instructions, see: [Using-the-DockerHub-provided-image](#Using
 ### Using the DockerHub provided image
 
 * Run the image with the provided docker-compose file after amending it and the ``.env`` file where needed.
-  * The required permissions for the API key will be "DatastoreBackup" and "DatastoreReader" on the appropriate path.
+  * If allowing the container to conduct an auto setup, don't set a  ``PBS_ENCRYPTION_PASSWORD`` value yet as the container first run will autogenerate one for you.
+  * Supply your desired ``master-public.pem``, ``master-private.pem`` and ``encryption-key.json`` files with a matching ``PBS_ENCRYPTION_PASSWORD`` or allow the container to automatically generate these for you on first run.
+  * The required permissions in your PBS server instance for an API key will be "DatastoreBackup" and "DatastoreReader" on the appropriate path. Or you can supply a username and password combination which has these permissions - this is not recommended!
   * i.e. bind mount the folders or volumes you wish to backup into the continer's ``/backups`` directiory.
-  * Supply your desired ``master-public.pem``, ``master-private.pem`` and ``encryption-key.json`` files or allow the container to automatically generate them on first run.
-* **If you do allow automatic generation, passwords will be echoed to the container logs only once during first run!**
-* Backup the ``master-public.pem``, ``master-private.pem`` and ``encryption-key.json`` files and passwords.
-* Populate the environment file with the correct ``PBS_ENCRYPTION_PASSWORD`` value from the container logs or from your provided ``pem`` files.
+* **If you do allow automatic generation, passwords will be echoed to the container logs only once during first run!** Ensure you do not restart the container before saving these values.
+* Backup the ``master-public.pem``, ``master-private.pem`` and ``encryption-key.json`` files and passwords to a separate storage system accessible even if the machine / system being backed up or restored becomes inaccessible.
+* Populate the environment file with the correct ``PBS_ENCRYPTION_PASSWORD`` value from the container logs or from your provided ``pem`` /  ``encryption-key.json`` files.
 * Restart the container and check the logs to confirm a successful backup.
   * You can start a backup with the ``backupnow`` command from inside the container, i.e. ``docker exec -it pbs-client backupnow``
 * Review the other helper scripts [from here](https://github.com/Aterfax/pbs-client-docker/tree/main/docker/src/helper_scripts) which are also available from the container terminal.
