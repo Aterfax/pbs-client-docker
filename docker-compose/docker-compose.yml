@@ -9,7 +9,7 @@ services:
       - .env
     tmpfs:
       - /tmp
-      - /run
+      - /run:exec
     volumes:
       - ./pbsconfig/:/root/.config/proxmox-backup/
       # Note - if you want to restore backups make sure to change to read write below.
