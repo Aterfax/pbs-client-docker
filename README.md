@@ -87,6 +87,16 @@ The following environment variables can be configured to customize the behavior 
 
 ## FAQ
 
+### Error: Function not implemented (os error 38)
+
+It appears that some Synology NAS platforms are missing support for the ``getrandom`` system call used during key creation which will block the container from starting. 
+
+To bypass this issue you can manually create some keys or run the container on another platform to generate keys with a random password then transfer these (``encryption-key.json``  ``master-private.pem``  ``master-public.pem``) to the Synology docker container's ``/root/.config/proxmox-backup/`` bind mount.
+
+See also:
+- https://github.com/Aterfax/pbs-client-docker/issues/8
+- https://forum.proxmox.com/threads/backup-client-encryption-not-working-inside-docker-container.139054/
+
 ## Troubleshooting
 
 If you encounter issues, check the [Troubleshooting section](TROUBLESHOOTING.md)  for solutions to common problems.
