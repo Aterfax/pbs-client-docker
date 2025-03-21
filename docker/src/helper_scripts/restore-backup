@@ -116,7 +116,7 @@ read -rp "Are these details correct? Press Enter to continue or Ctrl+C to cancel
 #proxmox-backup-client restore host/elsa/2019-12-03T09:35:01Z root.pxar /target/path/
 # We need to build this command in case namespaces are in use.
 RESTORECMD="proxmox-backup-client restore ${selected_backup_type}/${selected_backup_id}/${selected_backup_time} ${selected_file} ${restore_path}"
-if [ -n "$RESTORECMD" ]; then
+if [ -n "$PBS_DATASTORE_NS" ]; then
     RESTORECMD+=" --ns ${PBS_DATASTORE_NS}"
 fi
 echo -e "\nRestore command:"
