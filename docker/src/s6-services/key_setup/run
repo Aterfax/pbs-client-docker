@@ -20,6 +20,14 @@ handle_error() {
 }
 trap handle_error ERR
 
+# Check if encryption is disabled via environment variable
+if [ "${UNENCRYPTED}" = "1" ]; then
+    echo "Encrypted backups are disabled. Skipping key setup process."
+    echo ""
+    echo "This is a bad idea as the owner of the PBS backup server you are backing up to will have full access to explore the backed-up content."
+    exit 0
+fi
+
 client_encryption_keyfile="/root/.config/proxmox-backup/encryption-key.json"
 master_private_keyfile="/root/.config/proxmox-backup/master-private.pem"
 master_public_keyfile="/root/.config/proxmox-backup/master-public.pem"

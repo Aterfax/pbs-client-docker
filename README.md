@@ -40,6 +40,9 @@ For more in depth instructions, see: [Using-the-DockerHub-provided-image](#Using
 
 ### Using the DockerHub provided image
 
+> [!WARNING]  
+> It is possible, but highly discouraged for you to make unencrypted backups by setting `UNENCRYPTED=1` in your ``.env`` file. This will bypass the automatic key generation process but **this is a bad idea** as the backed-up data will be stored in plaintext. This means that the owner of the PBS backup server you are backing up to will have full access to explore the backed-up content.
+
 * Run the image with the provided docker-compose file after amending it and the ``.env`` file where needed.
   * If allowing the container to conduct an auto setup, don't set a  ``PBS_ENCRYPTION_PASSWORD`` value yet as the container first run will autogenerate one for you.
   * Supply your desired ``master-public.pem``, ``master-private.pem`` and ``encryption-key.json`` files with a matching ``PBS_ENCRYPTION_PASSWORD`` or allow the container to automatically generate these for you on first run.
@@ -96,6 +99,11 @@ To bypass this issue you can manually create some keys or run the container on a
 See also:
 - https://github.com/Aterfax/pbs-client-docker/issues/8
 - https://forum.proxmox.com/threads/backup-client-encryption-not-working-inside-docker-container.139054/
+
+> [!WARNING]  
+> It is possible, but highly discouraged for you to bypass this issue by taking unencrypted backups. You can do this by setting `UNENCRYPTED=1` in your ``.env`` file and this will bypass the automatic key generation process.
+>
+>**This is a bad idea** as the backed-up data will be stored in plaintext. This means that the owner of the PBS backup server you are backing up to will have full access to explore the backed-up content.
 
 ## Troubleshooting
 
