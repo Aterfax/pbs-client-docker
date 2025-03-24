@@ -30,8 +30,11 @@ if [ -z "$PBS_PASSWORD" ]; then
     exit 1
 fi
 
-HEALTHCHECKSURL="${HEALTHCHECKSHOSTNAME}/ping/${HEALTHCHECKSUUID}"
+# Evaluate each subvariable and replace all spaces with nothing - if not zero length set variable.
+if [[ ! -z "${HEALTHCHECKSHOSTNAME// }" ]] && [[ ! -z "${HEALTHCHECKSUUID// }" ]]; then
+  HEALTHCHECKSURL="${HEALTHCHECKSHOSTNAME}/ping/${HEALTHCHECKSUUID}"
+  export HEALTHCHECKSURL="${HEALTHCHECKSURL}"
+fi
 
-export HEALTHCHECKSURL="${HEALTHCHECKSURL}"
 export PBS_PASSWORD="${PBS_PASSWORD}"
 export PBS_REPOSITORY="${PBS_USER}@${PBS_ENDPOINT}:${PBS_DATASTORE}"
