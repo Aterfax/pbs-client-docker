@@ -60,7 +60,7 @@ fi
 # to allow the first backup or we're
 if [ "$CRON_BACKUP_ONLY" = "0" ] || [ -e "${lastrunfile}" ]; then
     if [ -n "$HEALTHCHECKSURL" ]; then
-        curl -fsS -m 10 --retry 5 $HEALTHCHECKSURL/start
+        curl -fsS -m 10 --retry 5 -o /dev/null $HEALTHCHECKSURL/start
     fi
 
     # Run the actual backup command.
@@ -72,7 +72,7 @@ if [ "$CRON_BACKUP_ONLY" = "0" ] || [ -e "${lastrunfile}" ]; then
 
     if [ -n "$HEALTHCHECKSURL" ]; then
         # We pipe the exit code to healthchecks, if it isn't zero, a warning will fire.
-        curl -fsS -m 10 --retry 5 ${HEALTHCHECKSURL}/${BACKUP_EXIT_CODE}
+        curl -fsS -m 10 --retry 5 -o /dev/null ${HEALTHCHECKSURL}/${BACKUP_EXIT_CODE}
     fi
 elif [ "$CRON_BACKUP_ONLY" = "1" ]; then
     echo "CRON_BACKUP_ONLY=1, skipping container start up initial backup."
