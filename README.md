@@ -104,6 +104,35 @@ See also:
 > It is possible, but highly discouraged for you to bypass this issue by taking unencrypted backups. You can do this by setting `UNENCRYPTED=1` in your ``.env`` file and this will bypass the automatic key generation process.
 >
 >**This is a bad idea** as the backed-up data will be stored in plaintext. This means that the owner of the PBS backup server you are backing up to will have full access to explore the backed-up content.
+<br><br>
+
+### The PBS client is skipping mount points when doing backups
+
+This is caused by the default behaviour of the PBS client to not traverse mountpoints and your choice in backup directory targets, e.g. mounting a folder in a subdirectory within ``/backup/myfolder``, e.g. ``/backup/myfolder/folder_to_backup`` rather than a directory within ``/backup/`` as ``/backup/folder_to_backup``.
+
+You can either:
+
+* Mount your folder targets within ``/backup/`` only.
+* Use the ``PBS_BACKUP_CMD_APPEND_EXTRA_OPTS`` environment variable to set ``--include-dev`` arguments as per documentation here: https://pbs.proxmox.com/docs/backup-client.html#creating-backups
+<br><br>
+
+### How can I exclude a subdirectory within one of my backup folders?
+
+If we have a structure as below when mounted in the container:
+
+```
+/backup/myfolder/folder_to_backup
+/backup/myfolder/folder_to_ignore
+```
+
+You would be able to exclude the second path in your docker compose file by mounting an empty Docker volume over the top of that path (rendering it empty inside the docker container) as below:
+
+```
+volumes:
+  - /my_host_path/:/backup/myfolder/:ro
+  - /backup/myfolder/folder_to_ignore # This mounts an empty Docker volume over the top of this path.
+```  
+<br>
 
 ## Troubleshooting
 
