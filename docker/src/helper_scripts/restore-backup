@@ -119,6 +119,11 @@ RESTORECMD="proxmox-backup-client restore ${selected_backup_type}/${selected_bac
 if [ -n "$PBS_DATASTORE_NS" ]; then
     RESTORECMD+=" --ns ${PBS_DATASTORE_NS}"
 fi
+
+if [ -n "$PBS_RESTORE_CMD_APPEND_EXTRA_OPTS" ]; then
+    RESTORECMD+=" ${PBS_RESTORE_CMD_APPEND_EXTRA_OPTS}"
+fi
+
 echo -e "\nRestore command:"
 echo "${RESTORECMD}"
 
