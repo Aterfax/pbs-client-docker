@@ -39,6 +39,10 @@ touch "${CRONLOG_FILE}"
 echo "${CRON_LINE}" > "${CRON_FILE}"
 chmod +x "${CRON_FILE}"
 
+# Fix cron timezone before starting
+ln -sf "/usr/share/zoneinfo/${TZ}" /etc/localtime
+
+# Start the cron service
 service cron start
 echo "Cron service is now running with: \"${CRON_LINE}\" "
 
