@@ -16,7 +16,7 @@ jobs:
     # steps to perform in job
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Test CRON validation.
         run: bash docker/src/tests/test-cron-validation.sh
