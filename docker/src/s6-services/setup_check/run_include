@@ -30,10 +30,24 @@ if [ -z "$PBS_PASSWORD" ]; then
     exit 1
 fi
 
-# Evaluate each subvariable and replace all spaces with nothing - if not zero length set variable.
-if [[ ! -z "${HEALTHCHECKSHOSTNAME// }" ]] && [[ ! -z "${HEALTHCHECKSUUID// }" ]]; then
-  HEALTHCHECKSURL="${HEALTHCHECKSHOSTNAME}/ping/${HEALTHCHECKSUUID}"
-  export HEALTHCHECKSURL="${HEALTHCHECKSURL}"
+# Default to self-hosted if variable is unset
+HEALTHCHECKS_SELF_HOSTED="${HEALTHCHECKS_SELF_HOSTED:-true}" # Defaults to 'true' if unset.
+
+# Set the ping subdirectory for self-hosted instances only
+if [[ "${HEALTHCHECKS_SELF_HOSTED}" == "true" ]]; then
+    PING_SUBDIR="${HEALTHCHECKS_PING_ENDPOINT_DIR:-ping}" # Defaults to 'ping' if unset.
+else
+    PING_SUBDIR=""
+fi
+
+# Construct Healthchecks URL if required variables are set
+if [[ -n "${HEALTHCHECKSHOSTNAME// }" && -n "${HEALTHCHECKSUUID// }" ]]; then
+    if [[ -n "$PING_SUBDIR" ]]; then
+        HEALTHCHECKSURL="${HEALTHCHECKSHOSTNAME}/${PING_SUBDIR}/${HEALTHCHECKSUUID}"
+    else
+        HEALTHCHECKSURL="${HEALTHCHECKSHOSTNAME}/${HEALTHCHECKSUUID}"
+    fi
+    export HEALTHCHECKSURL
 fi
 
 export PBS_PASSWORD="${PBS_PASSWORD}"
