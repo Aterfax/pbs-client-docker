@@ -43,6 +43,10 @@ For more in depth instructions, see: [Using-the-DockerHub-provided-image](#Using
 > [!WARNING]  
 > It is possible, but highly discouraged for you to make unencrypted backups by setting `UNENCRYPTED=1` in your ``.env`` file. This will bypass the automatic key generation process but **this is a bad idea** as the backed-up data will be stored in plaintext. This means that the owner of the PBS backup server you are backing up to will have full access to explore the backed-up content.
 
+> [!NOTE]  
+> If you use the central Healthchecks.io instance you must the ``.env`` variable ``HEALTHCHECKS_SELF_HOSTED=false`` or checks will not work.
+
+
 * Run the image with the provided docker-compose file after amending it and the ``.env`` file where needed.
   * If allowing the container to conduct an auto setup, don't set a  ``PBS_ENCRYPTION_PASSWORD`` value yet as the container first run will autogenerate one for you.
   * Supply your desired ``master-public.pem``, ``master-private.pem`` and ``encryption-key.json`` files with a matching ``PBS_ENCRYPTION_PASSWORD`` or allow the container to automatically generate these for you on first run.
@@ -89,6 +93,10 @@ The following environment variables can be configured to customize the behavior 
 
 
 ## FAQ
+
+### I'm using the central Healthchecks.io instance and checks are not working
+
+If you use the central Healthchecks.io instance you must the ``.env`` variable ``HEALTHCHECKS_SELF_HOSTED=false`` or checks will not work due to the additional URL subdirectory (``/ping``) used by self hosted instances.
 
 ### Error: Function not implemented (os error 38)
 
