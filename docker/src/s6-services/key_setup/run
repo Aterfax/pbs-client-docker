@@ -28,10 +28,12 @@ if [ "${UNENCRYPTED}" = "1" ]; then
     exit 0
 fi
 
-client_encryption_keyfile="/root/.config/proxmox-backup/encryption-key.json"
-master_private_keyfile="/root/.config/proxmox-backup/master-private.pem"
-master_public_keyfile="/root/.config/proxmox-backup/master-public.pem"
+encryption_dir="/root/.config/proxmox-backup"
+client_encryption_keyfile="$encryption_dir/encryption-key.json"
+master_private_keyfile="$encryption_dir/master-private.pem"
+master_public_keyfile="$encryption_dir/master-public.pem"
 
+mkdir -p "$encryption_dir"
 expect="/usr/bin/expect"
 
 # Check if client encryption keyfile exists and do stuff.
