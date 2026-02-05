@@ -35,6 +35,7 @@ CRON_FILE="/etc/cron.d/cron-backup"
 CRON_LINE="${CRON_SCHEDULE} root bash -c '/etc/s6-overlay/s6-rc.d/backup/run_include'  >> $CRONLOG_FILE 2>&1 "
 TIMEOUT=60
 
+mkdir -p "$(dirname "$CRONLOG_FILE")"
 touch "${CRONLOG_FILE}"
 echo "${CRON_LINE}" > "${CRON_FILE}"
 chmod +x "${CRON_FILE}"
