@@ -16,8 +16,8 @@ echo "deb http://download.proxmox.com/debian/pbs-client bookworm main" > /etc/ap
 # Run updates, installs and clean up to minimise image size
 RUN apt-get update && \
 apt-get install -y proxmox-backup-client && \
-apt-get autoclean && \
-apt-get autoremove && \
+apt-get autoclean -y && \
+apt-get autoremove -y && \
 rm -rf /var/lib/apt/lists/* && \
 rm -rf /var/cache/apt/archives
 
