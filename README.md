@@ -82,15 +82,39 @@ To be filled in.
 
 ### Table of available container environment variables
 
-To be filled in.
-
 The following environment variables can be configured to customize the behavior of the Docker container:
 
-| Variable Name      | Default Docker Compose Value | Valid Values           | Description                                                                                                           |
-|--------------------|------------------------------|------------------------|-----------------------------------------------------------------------------------------------------------------------|
-| Variable Name      | Default Docker Compose Value | Valid Values           | Description                                                                                                           |
-
-
+| Variable Name                         | Default Docker Compose Value           | Valid Values                 | Description                                                          |
+| ------------------------------------- | -------------------------------------- | ---------------------------- | -------------------------------------------------------------------- |
+| **PBS_ENCRYPTION_PASSWORD**           | `123456789abcdefghijklmn`              | A string                     | Required: Password for encrypting backups.                           |
+| **PBS_ENDPOINT**                      | `pbs.mydomain.com`                     | Valid hostname or IP         | Required: PBS server endpoint.                                       |
+| **PBS_DATASTORE**                     | `test-datastore`                       | Any valid PBS datastore name | Required: Target datastore on the PBS server.                        |
+| **CRON_SCHEDULE**                     | `0 */4 * * *`                          | Any valid cron expression    | Required: Schedule for automatic backups.                            |
+| **CRON_BACKUP_ONLY**                  | `0`                                    | `0` or `1`                   | Optional: `1` to skip backup on startup, `0` to run immediately.     |
+| **UNENCRYPTED**                       | `0`                                    | `0` or `1`                   | Optional: `1` to allow unencrypted backups (not recommended).        |
+| **PBS_API_KEY_NAME**                  | `username@pam!test`                    | Valid PBS API key name       | Optional: API key name; preferred over PBS_USER/PBS_PASSWORD.        |
+| **PBS_API_KEY_SECRET**                | `4054356a-f1a6-441e-86fc-e338367db185` | Valid PBS API key secret     | Optional: Secret for PBS_API_KEY_NAME.                               |
+| **PBS_USER**                          | *(empty)*                              | PBS username                 | Optional: Only required if API key is not set.                       |
+| **PBS_PASSWORD**                      | *(empty)*                              | PBS password                 | Optional: Only required if API key is not set.                       |
+| **PBS_FINGERPRINT**                   | *(empty)*                              | SHA1 fingerprint             | Optional: Required if using a self-signed SSL certificate.           |
+| **PBS_DATASTORE_NS**                  | `test`                                 | Any string                   | Optional: Namespace within datastore.                                |
+| **PBS_BACKUP_CMD_APPEND_EXTRA_OPTS**  | *(empty)*                              | Any valid PBS CLI option     | Optional: Extra options appended to `proxmox-backup-client backup`.  |
+| **PBS_RESTORE_CMD_APPEND_EXTRA_OPTS** | *(empty)*                              | Any valid PBS CLI option     | Optional: Extra options appended to `proxmox-backup-client restore`. |
+| **HEALTHCHECKSUUID**                  | `aa7b0de3-2c17-4fce-b051-388a5415e656` | Valid UUID                   | Optional: Healthchecks.io UUID for monitoring.                       |
+| **HEALTHCHECKSHOSTNAME**              | `https://healthchecks.mydomain.com`    | Valid URL                    | Optional: Healthchecks.io host.                                      |
+| **HEALTHCHECKS_SELF_HOSTED**          | `true`                                 | `true` or `false`            | Optional: Whether Healthchecks.io is self-hosted.                    |
+| **HEALTHCHECKS_PING_ENDPOINT_DIR**    | *(empty / ping default)*               | Any string                   | Optional: Subdirectory for ping endpoint; defaults to `ping`.        |
+| **TZ**                                | `Etc/UTC`                              | Any valid timezone string    | Container timezone.                                                  |
+| **SMTP_HOST**                         | `smtp.mydomain.com`                    | Valid SMTP hostname          | Optional: SMTP server to use for email notifications.                       |
+| **SMTP_PORT**                         | `587`                                  | Valid port number            | Optional: SMTP server port.                                                 |
+| **SMTP_USER**                         | `backup@mydomain.com`                  | Valid email/user             | Optional: SMTP server username.                                             |
+| **SMTP_PASSWORD**                     | `supersecret`                          | Valid password               | Optional: SMTP server password.                                             |
+| **SMTP_FROM**                         | `backup@mydomain.com`                  | Valid email                  | Optional: From address for notifications.                            |
+| **SMTP_TO**                           | `admin@mydomain.com`                   | Valid email                  | Optional: Recipient of notifications.                                |
+| **SMTP_TLS**                          | `true`                                 | `true` or `false`            | Optional: Use TLS for SMTP.                                          |
+| **SMTP_STARTTLS**                     | `false`                                 | `true` or `false`            | Optional: Use STARTTLS for SMTP.                                     |
+| **EMAIL_ON_SUCCESS**                  | `0`                                    | `0` or `1`                   | Optional: Send email if backup succeeds.                             |
+| **EMAIL_ON_FAILURE**                  | `1`                                    | `0` or `1`                   | Optional: Send email if backup fails.                                |
 
 ## FAQ
 
