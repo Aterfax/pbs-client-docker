@@ -23,12 +23,26 @@ For more in depth instructions, see: [Using-the-DockerHub-provided-image](#Using
 
 ## Table of Contents
 
+- [Features](#Features)
 - [Quickstart](#Quickstart)
 - [Configuration](#Configuration)
 - [FAQ](#FAQ)
 - [Troubleshooting](#Troubleshooting)
 - [Contributing](#Contributing)
 - [License](#License)
+
+## Features
+
+* **Containerized PBS Client** - Runs Proxmox Backup Server client in a Docker container.
+* **Automated Backup Scheduling** - Fully configurable via `CRON_SCHEDULE` and optional `CRON_BACKUP_ONLY`.
+* **Secure Backups** - Supports encrypted backups with `PBS_ENCRYPTION_PASSWORD` or unencrypted mode if needed.
+* **API Key Support** - Use `PBS_API_KEY_NAME` / `PBS_API_KEY_SECRET` instead of PBS username/password.
+* **Namespace Support** - Target specific PBS datastore namespaces with `PBS_DATASTORE_NS`.
+* **Customizable Backup Options** - Append extra PBS CLI options via `PBS_BACKUP_CMD_APPEND_EXTRA_OPTS` and restore options via `PBS_RESTORE_CMD_APPEND_EXTRA_OPTS`.
+* **Healthchecks.io Integration** - Optional monitoring via self-hosted or central Healthchecks.io.
+* **Email Notifications** - Optional success/failure notifications via SMTP configuration.
+* **Timezone Configurable** - Set container timezone with `TZ`.
+* **S6-based Supervision** - Long-running container managed with s6, optional mail service, and clean logging.
 
 ## Quickstart
 
