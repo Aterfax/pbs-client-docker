@@ -82,10 +82,12 @@ if [ "$CRON_BACKUP_ONLY" = "0" ] || [ -e "${lastrunfile}" ]; then
     # Send email if needed
     if [ "${BACKUP_EXIT_CODE}" -eq 0 ]; then
         if [ "${EMAIL_ON_SUCCESS:-0}" = "1" ]; then
+            echo Sending email to confirm successful backup.
             /usr/local/sbin/send-mail-notification "SUCCESS"
         fi
     else
         if [ "${EMAIL_ON_FAILURE:-1}" = "1" ]; then
+            echo Sending email to confirm unsuccessful backup.
             /usr/local/sbin/send-mail-notification "FAILURE"
         fi
     fi

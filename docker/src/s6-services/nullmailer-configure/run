@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/with-contenv bash
 
 # Define a logging function to prefix output to the docker logs.
 output_to_log() {
@@ -11,7 +11,7 @@ exec > >(output_to_log)
 
 # Mail disabled if no relay defined
 if [ -z "${SMTP_HOST:-}" ]; then
-    echo "SMTP_HOST not set — email notifications disabled."
+    echo "SMTP_HOST not set - email notifications disabled."
     exit 0
 fi
 
@@ -35,10 +35,20 @@ fi
 cat >/etc/nullmailer/remotes <<EOF
 ${SMTP_HOST} smtp --port=${SMTP_PORT} ${AUTH_FLAGS} ${TLS_FLAGS}
 EOF
+chmod 600 /etc/nullmailer/remotes
 
 echo "${SMTP_FROM}" >/etc/nullmailer/sendmail
-hostname >/etc/nullmailer/me
+hostname >/etc/mailname
 
-chmod 600 /etc/nullmailer/remotes
+mkdir -p /var/spool/nullmailer/queue
+mkdir -p /var/spool/nullmailer/tmp
+
+touch /var/spool/nullmailer/trigger
+
+# nullmailer must own its spool
+chown -R nullmail:nullmail /var/spool/nullmailer
+chmod 750 /var/spool/nullmailer
+chmod 700 /var/spool/nullmailer/{queue,tmp}
+chmod 600 /var/spool/nullmailer/trigger
 
 echo "nullmailer configured."

@@ -1,0 +1,3 @@
+#!/usr/bin/with-contenv bash
+# Get rid of the noise
+nullmailer-send >/dev/null 2>&1

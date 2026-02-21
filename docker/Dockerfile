@@ -45,6 +45,9 @@ RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/cron-backup
 COPY ./src/s6-services/nullmailer-configure /etc/s6-overlay/s6-rc.d/nullmailer-configure
 RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/nullmailer-configure
 
+COPY ./src/s6-services/nullmailer-service /etc/s6-overlay/s6-rc.d/nullmailer-service
+RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/nullmailer-service
+
 COPY ./src/helper_scripts/* /usr/local/sbin/
 RUN chmod +x /usr/local/sbin/*
 

@@ -5,7 +5,7 @@ STATUS="$1"
 
 # Validate STATUS
 if [ "$STATUS" != "SUCCESS" ] && [ "$STATUS" != "FAILURE" ]; then
-    echo "[mail][ERROR] Invalid status: $STATUS"
+    echo "[ERROR] Invalid status: $STATUS"
     exit 1
 fi
 
@@ -22,7 +22,11 @@ else
     BODY="Backup failed on host ${HOSTNAME}. Please check logs for details."
 fi
 
-# Send the email via nullmailer
-echo "${BODY}" | mail -s "${SUBJECT}" "${SMTP_TO}"
-
-echo "[mail] Notification sent for status: ${STATUS}"
+# Send the email via nullmailer, specifying the FROM address
+if echo "${BODY}" | mail -s "${SUBJECT}" -r "${SMTP_USER}" "${SMTP_TO}"; then
+    echo "Email notification queued successfully for status: ${STATUS}"
+else
+    rc=$?
+    echo "ERROR: Failed to send email for status: ${STATUS} (mail exit code: ${rc})" >&2
+    exit ${rc}
+fi
