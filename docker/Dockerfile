@@ -7,7 +7,7 @@ FROM ghcr.io/linuxserver/baseimage-debian:bookworm
 LABEL maintainer="Aterfax"
 
 # Get initial required packages
-RUN apt-get update && apt-get install -y wget cron expect
+RUN apt-get update && apt-get install -y wget cron expect nullmailer bsd-mailx ca-certificates
 
 # Get the Proxmox signing keys and add to trust store
 RUN curl -o /etc/apt/trusted.gpg.d/proxmox-release-bookworm.gpg https://enterprise.proxmox.com/debian/proxmox-release-bookworm.gpg && \
@@ -41,6 +41,9 @@ RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/backup
 
 COPY ./src/s6-services/cron-backup /etc/s6-overlay/s6-rc.d/cron-backup
 RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/cron-backup
+
+COPY ./src/s6-services/nullmailer-configure /etc/s6-overlay/s6-rc.d/nullmailer-configure
+RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/nullmailer-configure
 
 COPY ./src/helper_scripts/* /usr/local/sbin/
 RUN chmod +x /usr/local/sbin/*

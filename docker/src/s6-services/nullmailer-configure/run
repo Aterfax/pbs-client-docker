@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# Mail disabled if no relay defined
+if [ -z "${SMTP_HOST:-}" ]; then
+    echo "[mail] SMTP_HOST not set — email notifications disabled."
+    exit 0
+fi
+
+echo "[mail] Configuring nullmailer relay → ${SMTP_HOST}:${SMTP_PORT}"
+
+AUTH_FLAGS="--user=${SMTP_USER} --pass=${SMTP_PASSWORD}"
+TLS_FLAGS=""
+
+# Check for mutually exclusive TLS settings
+if [ "${SMTP_TLS:-false}" = "true" ] && [ "${SMTP_STARTTLS:-true}" = "true" ]; then
+    echo "[mail][WARNING] Both SMTP_TLS and SMTP_STARTTLS are set to true - these are mutually exclusive. Only one should be enabled. Defaulting to TLS, not STARTTLS."
+fi
+
+TLS_FLAGS=""
+if [ "${SMTP_TLS:-false}" = "true" ]; then
+    TLS_FLAGS="--ssl"
+elif [ "${SMTP_STARTTLS:-true}" = "true" ]; then
+    TLS_FLAGS="--starttls"
+fi
+
+cat >/etc/nullmailer/remotes <<EOF
+${SMTP_HOST} smtp --port=${SMTP_PORT} ${AUTH_FLAGS} ${TLS_FLAGS}
+EOF
+
+echo "${SMTP_FROM}" >/etc/nullmailer/sendmail
+hostname >/etc/nullmailer/me
+
+chmod 600 /etc/nullmailer/remotes
+
+echo "[mail] nullmailer configured."
