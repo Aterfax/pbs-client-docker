@@ -1,5 +1,10 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
+
+# Raise limits before running PBS
+ulimit -n 65536
+ulimit -u 65536
+
 path_to_filename() {
     local path="$1"
     local path_no_trailing_slash="${path%/}"  # Remove the trailing slash, if any
