@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 
+# Define a logging function to prefix output to the docker logs.
+output_to_log() {
+    while IFS= read -r line; do
+        echo "[mailer-configuration] $(date +"%Y-%m-%d %H:%M:%S") $line"
+    done
+}
+# Redirect all subsequent command outputs to output_to_log
+exec > >(output_to_log)
+
 # Mail disabled if no relay defined
 if [ -z "${SMTP_HOST:-}" ]; then
-    echo "[mail] SMTP_HOST not set — email notifications disabled."
+    echo "SMTP_HOST not set — email notifications disabled."
     exit 0
 fi
 
-echo "[mail] Configuring nullmailer relay → ${SMTP_HOST}:${SMTP_PORT}"
+echo "Configuring nullmailer relay → ${SMTP_HOST}:${SMTP_PORT}"
 
 AUTH_FLAGS="--user=${SMTP_USER} --pass=${SMTP_PASSWORD}"
 TLS_FLAGS=""
@@ -32,4 +41,4 @@ hostname >/etc/nullmailer/me
 
 chmod 600 /etc/nullmailer/remotes
 
-echo "[mail] nullmailer configured."
+echo "nullmailer configured."
