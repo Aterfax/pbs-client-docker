@@ -2,6 +2,8 @@ version: '3.3'
 services:
   pbs-client:
     image: aterfax/pbs-client
+    # Adjust the container name and hostname to change the naming within the PBS server
+    # backups, e.g. this would set ``host/pbs-client``.
     container_name: pbs-client
     hostname: pbs-client
     restart: unless-stopped
