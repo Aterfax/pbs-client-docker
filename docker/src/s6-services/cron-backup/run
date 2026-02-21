@@ -2,6 +2,9 @@
 # shellcheck shell=bash
 # This script instates the cron job to take regular backups.
 
+# Raise limits before running PBS
+ulimit -n 65536
+ulimit -u 65536
 
 # Define a logging function to prefix output to the docker logs.
 output_to_log() {
