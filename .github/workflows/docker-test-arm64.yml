@@ -1,0 +1,54 @@
+name: Build ARM64 DEB + Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        type: choice
+        options:
+          - client
+      baseimage:
+        type: choice
+        options:
+          - debian:bookworm-slim
+
+jobs:
+  build-arm64:
+    runs-on: ubuntu-24.04
+
+    steps:
+      # Checkout repo with submodule
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # Enable QEMU for cross-build
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # Setup Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build ARM64 DEBs
+      - name: Build ARM64 packages
+        run: |
+          options="${{ github.event.inputs.package }}"
+          docker buildx build \
+            -o proxmox-backup-arm64/packages \
+            --build-arg buildoptions="cross github ${options}" \
+            --build-arg baseimage=${{ github.event.inputs.baseimage }} \
+            --platform linux/amd64 \
+            -f proxmox-backup-arm64/.github/Dockerfile.crosscompile-arm64 \
+            proxmox-backup-arm64
+
+      # Build ARM64 Docker image using local .deb packages
+      - name: Build ARM64 Docker image
+        run: |
+          cp -r proxmox-backup-arm64/packages docker/packages
+          docker buildx build \
+            --platform linux/arm64 \
+            -t aterfax/pbs-client:arm64-test \
+            -f docker/Dockerfile.arm64 \
+            docker

@@ -1,0 +1,46 @@
+#
+# PBS Client Dockerfile for ARM64
+#
+
+FROM ghcr.io/linuxserver/baseimage-debian:bookworm
+
+LABEL maintainer="Aterfax"
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y wget cron expect nullmailer bsd-mailx ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy the locally-built ARM64 packages from host (to be provided by workflow)
+COPY ./packages/*.deb /tmp/
+
+# Install the ARM64 packages
+RUN dpkg -i /tmp/proxmox-backup-client_*.deb || apt-get -f install -y && rm -rf /tmp/*
+
+# Create backup mount point
+RUN mkdir /backups
+
+# Copy s6 services & helper scripts
+COPY ./src/expect_scripts/client_key /etc/s6-overlay/s6-rc.d/key_setup/client_key
+COPY ./src/expect_scripts/client_master_key /etc/s6-overlay/s6-rc.d/key_setup/client_master_key
+COPY ./src/s6-services/key_setup /etc/s6-overlay/s6-rc.d/key_setup
+RUN touch /etc/s6-overlay/s6-rc.d/user/contents.d/key_setup
+
+COPY ./src/s6-services/setup_check /etc/s6-overlay/s6-rc.d/setup_check
+RUN touch /etc/s6-overlay/s6-rc.d/user/contents.d/setup_check
+
+COPY ./src/s6-services/backup /etc/s6-overlay/s6-rc.d/backup
+RUN touch /etc/s6-overlay/s6-rc.d/user/contents.d/backup
+
+COPY ./src/s6-services/cron-backup /etc/s6-overlay/s6-rc.d/cron-backup
+RUN touch /etc/s6-overlay/s6-rc.d/user/contents.d/cron-backup
+
+COPY ./src/s6-services/nullmailer-configure /etc/s6-overlay/s6-rc.d/nullmailer-configure
+RUN touch /etc/s6-overlay/s6-rc.d/user/contents.d/nullmailer-configure
+
+COPY ./src/s6-services/nullmailer-service /etc/s6-overlay/s6-rc.d/nullmailer-service
+RUN touch /etc/s6-overlay/s6-rc.d/user/contents.d/nullmailer-service
+
+COPY ./src/helper_scripts/* /usr/local/sbin/
+RUN chmod +x /usr/local/sbin/*
+
+COPY ./src/branding.txt /etc/s6-overlay/s6-rc.d/init-adduser/branding
