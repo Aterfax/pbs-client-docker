@@ -31,6 +31,7 @@ if [ "${SMTP_TLS:-true}" = "true" ]; then
 elif [ "${SMTP_STARTTLS:-false}" = "true" ]; then
     TLS_FLAGS="--starttls"
 fi
+
 cat >/etc/nullmailer/remotes <<EOF
 ${SMTP_HOST} smtp --port=${SMTP_PORT} ${AUTH_FLAGS} ${TLS_FLAGS}
 EOF
