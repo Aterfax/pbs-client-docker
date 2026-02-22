@@ -25,7 +25,6 @@ if [ "${SMTP_TLS:-false}" = "true" ] && [ "${SMTP_STARTTLS:-false}" = "true" ]; 
     echo "[mail][WARNING] Both SMTP_TLS and SMTP_STARTTLS are set to true - these are mutually exclusive. Only one should be enabled. Defaulting to TLS, not STARTTLS."
 fi
 
-TLS_FLAGS=""
 if [ "${SMTP_TLS:-true}" = "true" ]; then
     TLS_FLAGS="--ssl"
 elif [ "${SMTP_STARTTLS:-false}" = "true" ]; then
