@@ -4,25 +4,25 @@ on:
   push:
     branches: [main]
   schedule:
-      # * is a special character in YAML so you have to quote this string
-      - cron:  '0 9 * * 6'
-
+    - cron: '0 9 * * 6'
   workflow_dispatch:
 
 jobs:
   build-and-push-docker-image:
-    name: Build Docker image and push to repositories
+    name: Build Docker image and publish multi-arch
     runs-on: ubuntu-latest
-    steps:
 
+    steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Force permissions fix.
+      - name: Force permissions fix
         run: sudo apt-get update && sudo apt-get install dos2unix -y && cd docker && bash dos2unix.sh
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
-        id: buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Login to DockerHub
@@ -39,19 +39,63 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get current date
-        id: date
         run: echo "DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
-      - name: Build image and push to Docker Hub and GitHub Container Registry
-        uses: docker/build-push-action@v6
-        with:
-          context: ./docker
-          push: true
-          tags: |
-            aterfax/pbs-client:latest 
-            ghcr.io/aterfax/pbs-client:latest
-            aterfax/pbs-client:${{ env.DATE }}
-            ghcr.io/aterfax/pbs-client:${{ env.DATE }}
+      ###########################################################
+      # Build + push AMD64 image (uses Dockerfile)
+      ###########################################################
+      - name: Build and push AMD64 image
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            -f docker/Dockerfile \
+            -t aterfax/pbs-client:amd64-latest \
+            -t aterfax/pbs-client:amd64-${DATE} \
+            -t ghcr.io/aterfax/pbs-client:amd64-latest \
+            -t ghcr.io/aterfax/pbs-client:amd64-${DATE} \
+            ./docker \
+            --push
 
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+      ###########################################################
+      # Build + push ARM64 image (uses Dockerfile.arm64)
+      ###########################################################
+      - name: Build and push ARM64 image
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            -f docker/Dockerfile.arm64 \
+            -t aterfax/pbs-client:arm64-latest \
+            -t aterfax/pbs-client:arm64-${DATE} \
+            -t ghcr.io/aterfax/pbs-client:arm64-latest \
+            -t ghcr.io/aterfax/pbs-client:arm64-${DATE} \
+            ./docker \
+            --push
+
+      ###########################################################
+      # Create multi-arch manifests (this is the magic step)
+      ###########################################################
+      # - name: Create and push multi-arch manifest
+      #   run: |
+      #     # DockerHub latest
+      #     docker buildx imagetools create \
+      #       -t aterfax/pbs-client:latest \
+      #       aterfax/pbs-client:amd64-latest \
+      #       aterfax/pbs-client:arm64-latest
+
+      #     # DockerHub dated
+      #     docker buildx imagetools create \
+      #       -t aterfax/pbs-client:${DATE} \
+      #       aterfax/pbs-client:amd64-${DATE} \
+      #       aterfax/pbs-client:arm64-${DATE}
+
+      #     # GHCR latest
+      #     docker buildx imagetools create \
+      #       -t ghcr.io/aterfax/pbs-client:latest \
+      #       ghcr.io/aterfax/pbs-client:amd64-latest \
+      #       ghcr.io/aterfax/pbs-client:arm64-latest
+
+      #     # GHCR dated
+      #     docker buildx imagetools create \
+      #       -t ghcr.io/aterfax/pbs-client:${DATE} \
+      #       ghcr.io/aterfax/pbs-client:amd64-${DATE} \
+      #       ghcr.io/aterfax/pbs-client:arm64-${DATE}
