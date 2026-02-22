@@ -17,18 +17,44 @@ fi
 
 echo "Configuring nullmailer relay → ${SMTP_HOST}:${SMTP_PORT}"
 
+# Check that SMTP_PORT is defined
+if [ -z "${SMTP_PORT:-}" ]; then
+    echo "[ERROR] SMTP_PORT must be set."
+    exit 1
+fi
+
+# Check that SMTP_USER and SMTP_PASSWORD are defined
+if [ -z "${SMTP_USER:-}" ] || [ -z "${SMTP_PASSWORD:-}" ]; then
+    echo "[ERROR] SMTP_USER and SMTP_PASSWORD must both be set."
+    exit 1
+fi
+
+if [ -z "${SMTP_FROM:-}" ]; then
+    echo "[ERROR] SMTP_FROM must be set."
+    exit 1
+fi
+
+if [ -z "${SMTP_TO:-}" ]; then
+    echo "[ERROR] SMTP_TO must be set."
+    exit 1
+fi
+
 AUTH_FLAGS="--user=${SMTP_USER} --pass=${SMTP_PASSWORD}"
 TLS_FLAGS=""
 
+# Enforce defaults, TLS on, STARTTLS off.
+SMTP_TLS="${SMTP_TLS:-true}"
+SMTP_STARTTLS="${SMTP_STARTTLS:-false}"
+
 # Check for mutually exclusive TLS settings
 if [ "$SMTP_TLS" = "true" ] && [ "$SMTP_STARTTLS" = "true" ]; then
-    echo "[WARNING] Both SMTP_TLS and SMTP_STARTTLS are true; these are mutually exclusive. Overriding to defaults. Defaults are to set TLS enabled, STARTTLS disabled."
-    SMTP_STARTTLS="false"
+    echo "[ERROR] Invalid configuration: SMTP_TLS and SMTP_STARTTLS are mutually exclusive."
+    exit 1
 fi
 
-if [ "${SMTP_TLS:-true}" = "true" ]; then
+if [ "${SMTP_TLS}" = "true" ]; then
     TLS_FLAGS="--ssl"
-elif [ "${SMTP_STARTTLS:-false}" = "true" ]; then
+elif [ "${SMTP_STARTTLS}" = "true" ]; then
     TLS_FLAGS="--starttls"
 fi
 
