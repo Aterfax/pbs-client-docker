@@ -26,12 +26,6 @@ if [ "${SMTP_TLS:-false}" = "true" ] && [ "${SMTP_STARTTLS:-false}" = "true" ]; 
 fi
 
 TLS_FLAGS=""
-if [ "${SMTP_TLS:-false}" = "true" ]; then
-    TLS_FLAGS="--ssl"
-elif [ "${SMTP_STARTTLS:-true}" = "true" ]; then
-    TLS_FLAGS="--starttls"
-fi
-TLS_FLAGS=""
 if [ "${SMTP_TLS:-true}" = "true" ]; then
     TLS_FLAGS="--ssl"
 elif [ "${SMTP_STARTTLS:-false}" = "true" ]; then
