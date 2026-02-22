@@ -7,7 +7,7 @@ FROM ghcr.io/linuxserver/baseimage-debian:bookworm
 LABEL maintainer="Aterfax"
 
 # Get initial required packages
-RUN apt-get update && apt-get install -y wget cron expect
+RUN apt-get update && apt-get install -y wget cron expect nullmailer bsd-mailx ca-certificates
 
 # Get the Proxmox signing keys and add to trust store
 RUN curl -o /etc/apt/trusted.gpg.d/proxmox-release-bookworm.gpg https://enterprise.proxmox.com/debian/proxmox-release-bookworm.gpg && \
@@ -16,8 +16,8 @@ echo "deb http://download.proxmox.com/debian/pbs-client bookworm main" > /etc/ap
 # Run updates, installs and clean up to minimise image size
 RUN apt-get update && \
 apt-get install -y proxmox-backup-client && \
-apt-get autoclean && \
-apt-get autoremove && \
+apt-get autoclean -y && \
+apt-get autoremove -y && \
 rm -rf /var/lib/apt/lists/* && \
 rm -rf /var/cache/apt/archives
 
@@ -41,6 +41,12 @@ RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/backup
 
 COPY ./src/s6-services/cron-backup /etc/s6-overlay/s6-rc.d/cron-backup
 RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/cron-backup
+
+COPY ./src/s6-services/nullmailer-configure /etc/s6-overlay/s6-rc.d/nullmailer-configure
+RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/nullmailer-configure
+
+COPY ./src/s6-services/nullmailer-service /etc/s6-overlay/s6-rc.d/nullmailer-service
+RUN touch etc/s6-overlay/s6-rc.d/user/contents.d/nullmailer-service
 
 COPY ./src/helper_scripts/* /usr/local/sbin/
 RUN chmod +x /usr/local/sbin/*

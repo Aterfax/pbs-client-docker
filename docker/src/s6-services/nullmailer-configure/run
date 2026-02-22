@@ -1,0 +1,80 @@
+#!/usr/bin/with-contenv bash
+
+# Define a logging function to prefix output to the docker logs.
+output_to_log() {
+    while IFS= read -r line; do
+        echo "[mailer-configuration] $(date +"%Y-%m-%d %H:%M:%S") $line"
+    done
+}
+# Redirect all subsequent command outputs to output_to_log
+exec > >(output_to_log)
+
+# Mail disabled if no relay defined
+if [ -z "${SMTP_HOST:-}" ]; then
+    echo "SMTP_HOST not set - email notifications disabled."
+    exit 0
+fi
+
+echo "Configuring nullmailer relay → ${SMTP_HOST}:${SMTP_PORT}"
+
+# Check that SMTP_PORT is defined
+if [ -z "${SMTP_PORT:-}" ]; then
+    echo "[ERROR] SMTP_PORT must be set."
+    exit 1
+fi
+
+# Check that SMTP_USER and SMTP_PASSWORD are defined
+if [ -z "${SMTP_USER:-}" ] || [ -z "${SMTP_PASSWORD:-}" ]; then
+    echo "[ERROR] SMTP_USER and SMTP_PASSWORD must both be set."
+    exit 1
+fi
+
+if [ -z "${SMTP_FROM:-}" ]; then
+    echo "[ERROR] SMTP_FROM must be set."
+    exit 1
+fi
+
+if [ -z "${SMTP_TO:-}" ]; then
+    echo "[ERROR] SMTP_TO must be set."
+    exit 1
+fi
+
+AUTH_FLAGS="--user=${SMTP_USER} --pass=${SMTP_PASSWORD}"
+TLS_FLAGS=""
+
+# Enforce defaults, TLS on, STARTTLS off.
+SMTP_TLS="${SMTP_TLS:-true}"
+SMTP_STARTTLS="${SMTP_STARTTLS:-false}"
+
+# Check for mutually exclusive TLS settings
+if [ "$SMTP_TLS" = "true" ] && [ "$SMTP_STARTTLS" = "true" ]; then
+    echo "[ERROR] Invalid configuration: SMTP_TLS and SMTP_STARTTLS are mutually exclusive."
+    exit 1
+fi
+
+if [ "${SMTP_TLS}" = "true" ]; then
+    TLS_FLAGS="--ssl"
+elif [ "${SMTP_STARTTLS}" = "true" ]; then
+    TLS_FLAGS="--starttls"
+fi
+
+cat >/etc/nullmailer/remotes <<EOF
+${SMTP_HOST} smtp --port=${SMTP_PORT} ${AUTH_FLAGS} ${TLS_FLAGS}
+EOF
+chmod 600 /etc/nullmailer/remotes
+
+echo "${SMTP_FROM}" >/etc/nullmailer/sendmail
+hostname >/etc/mailname
+
+mkdir -p /var/spool/nullmailer/queue
+mkdir -p /var/spool/nullmailer/tmp
+
+touch /var/spool/nullmailer/trigger
+
+# nullmailer must own its spool
+chown -R nullmail:nullmail /var/spool/nullmailer
+chmod 750 /var/spool/nullmailer
+chmod 700 /var/spool/nullmailer/{queue,tmp}
+chmod 600 /var/spool/nullmailer/trigger
+
+echo "nullmailer configured."

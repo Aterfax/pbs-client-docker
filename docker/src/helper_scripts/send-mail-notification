@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# $1 = STATUS, either "SUCCESS" or "FAILURE"
+STATUS="$1"
+
+# Validate STATUS
+if [ "$STATUS" != "SUCCESS" ] && [ "$STATUS" != "FAILURE" ]; then
+    echo "[ERROR] Invalid status: $STATUS"
+    exit 1
+fi
+
+# Exit silently if SMTP is not configured
+[ -z "${SMTP_HOST:-}" ] && exit 0
+
+HOSTNAME=$(hostname)
+SUBJECT="[PBS] Backup ${STATUS} on ${HOSTNAME}"
+
+# Compose email body
+if [ "$STATUS" = "SUCCESS" ]; then
+    BODY="Backup completed successfully on host ${HOSTNAME}."
+else
+    BODY="Backup failed on host ${HOSTNAME}. Please check logs for details."
+fi
+
+# Send the email via nullmailer, specifying the FROM address
+if echo "${BODY}" | mail -s "${SUBJECT}" -r "${SMTP_USER}" "${SMTP_TO}"; then
+    echo "Email notification queued successfully for status: ${STATUS}"
+else
+    rc=$?
+    echo "ERROR: Failed to send email for status: ${STATUS} (mail exit code: ${rc})" >&2
+    exit ${rc}
+fi
