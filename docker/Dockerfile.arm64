@@ -7,7 +7,7 @@ FROM ghcr.io/linuxserver/baseimage-debian:bookworm
 LABEL maintainer="Aterfax"
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y wget cron expect nullmailer bsd-mailx ca-certificates && \
+RUN apt-get update && apt-get install -y wget cron expect nullmailer bsd-mailx ca-certificates qrencode libfuse3-3 && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the locally-built ARM64 packages from host (to be provided by workflow)
