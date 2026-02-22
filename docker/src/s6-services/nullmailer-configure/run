@@ -22,7 +22,7 @@ TLS_FLAGS=""
 
 # Check for mutually exclusive TLS settings
 if [ "$SMTP_TLS" = "true" ] && [ "$SMTP_STARTTLS" = "true" ]; then
-    echo "[mail][WARNING] Both SMTP_TLS and SMTP_STARTTLS are true; these are mutually exclusive. Overriding to defaults. Defaults are to set TLS enabled, STARTTLS disabled."
+    echo "[WARNING] Both SMTP_TLS and SMTP_STARTTLS are true; these are mutually exclusive. Overriding to defaults. Defaults are to set TLS enabled, STARTTLS disabled."
     SMTP_STARTTLS="false"
 fi
 
