@@ -12,8 +12,6 @@
 
 ## Longer summary
 
-This container is still a work in progress but the main feature (cronjob'd backups) now works. 
-
 Reading and using the ``docker-compose\docker-compose.yml`` and example ``.env.example`` file should be illustrative on how to use this container. 
 
 There are also various helper scripts available when using the shell inside the container 
@@ -205,5 +203,6 @@ If you'd like to contribute to this project, follow these steps:
 This project is licensed under the [GNU General Public License v3 (GPL-3)](https://www.tldrlegal.com/license/gnu-general-public-license-v3-gpl-3).
 
 In short: You may copy, distribute and modify the software as long as you track changes/dates in source files. Any modifications to or software including (via compiler) GPL-licensed code must also be made available under the GPL along with build & install instructions.
+
 
 
