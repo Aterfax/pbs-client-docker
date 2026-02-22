@@ -1,6 +1,8 @@
 name: Build ARM64 DEB + Docker Image
 
 on:
+  # run it during pull request
+  pull_request:
   workflow_dispatch:
     inputs:
       package:
