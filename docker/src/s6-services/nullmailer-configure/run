@@ -21,8 +21,9 @@ AUTH_FLAGS="--user=${SMTP_USER} --pass=${SMTP_PASSWORD}"
 TLS_FLAGS=""
 
 # Check for mutually exclusive TLS settings
-if [ "${SMTP_TLS:-false}" = "true" ] && [ "${SMTP_STARTTLS:-false}" = "true" ]; then
-    echo "[mail][WARNING] Both SMTP_TLS and SMTP_STARTTLS are set to true - these are mutually exclusive. Only one should be enabled. Defaulting to TLS, not STARTTLS."
+if [ "$SMTP_TLS" = "true" ] && [ "$SMTP_STARTTLS" = "true" ]; then
+    echo "[mail][WARNING] Both SMTP_TLS and SMTP_STARTTLS are true; these are mutually exclusive. Overriding to defaults. Defaults are to set TLS enabled, STARTTLS disabled."
+    SMTP_STARTTLS="false"
 fi
 
 if [ "${SMTP_TLS:-true}" = "true" ]; then
