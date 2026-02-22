@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          submodules: recursive
 
       - name: Force permissions fix
         run: sudo apt-get update && sudo apt-get install dos2unix -y && cd docker && bash dos2unix.sh
