@@ -33,6 +33,7 @@ For more in depth instructions, see: [Using-the-DockerHub-provided-image](#Using
 
 ## Features
 
+* **Multiarch compatible** - Runs on ``x86_64`` and ``arm64``.
 * **Containerized PBS Client** - Runs Proxmox Backup Server client in a Docker container.
 * **Automated Backup Scheduling** - Fully configurable via `CRON_SCHEDULE` and optional `CRON_BACKUP_ONLY`.
 * **Secure Backups** - Supports encrypted backups with `PBS_ENCRYPTION_PASSWORD` or unencrypted mode if needed.
@@ -204,4 +205,5 @@ If you'd like to contribute to this project, follow these steps:
 This project is licensed under the [GNU General Public License v3 (GPL-3)](https://www.tldrlegal.com/license/gnu-general-public-license-v3-gpl-3).
 
 In short: You may copy, distribute and modify the software as long as you track changes/dates in source files. Any modifications to or software including (via compiler) GPL-licensed code must also be made available under the GPL along with build & install instructions.
+
 
