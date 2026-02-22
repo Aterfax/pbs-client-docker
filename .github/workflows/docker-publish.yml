@@ -88,30 +88,30 @@ jobs:
             --push
 
       ###########################################################
-      # Create multi-arch manifests (this is the magic step)
+      # Create multi-arch manifests
       ###########################################################
-      # - name: Create and push multi-arch manifest
-      #   run: |
-      #     # DockerHub latest
-      #     docker buildx imagetools create \
-      #       -t aterfax/pbs-client:latest \
-      #       aterfax/pbs-client:amd64-latest \
-      #       aterfax/pbs-client:arm64-latest
+      - name: Create and push multi-arch manifest
+        run: |
+          # DockerHub latest
+          docker buildx imagetools create \
+            -t aterfax/pbs-client:latest \
+            aterfax/pbs-client:amd64-latest \
+            aterfax/pbs-client:arm64-latest
 
-      #     # DockerHub dated
-      #     docker buildx imagetools create \
-      #       -t aterfax/pbs-client:${DATE} \
-      #       aterfax/pbs-client:amd64-${DATE} \
-      #       aterfax/pbs-client:arm64-${DATE}
+          # DockerHub dated
+          docker buildx imagetools create \
+            -t aterfax/pbs-client:${DATE} \
+            aterfax/pbs-client:amd64-${DATE} \
+            aterfax/pbs-client:arm64-${DATE}
 
-      #     # GHCR latest
-      #     docker buildx imagetools create \
-      #       -t ghcr.io/aterfax/pbs-client:latest \
-      #       ghcr.io/aterfax/pbs-client:amd64-latest \
-      #       ghcr.io/aterfax/pbs-client:arm64-latest
+          # GHCR latest
+          docker buildx imagetools create \
+            -t ghcr.io/aterfax/pbs-client:latest \
+            ghcr.io/aterfax/pbs-client:amd64-latest \
+            ghcr.io/aterfax/pbs-client:arm64-latest
 
-      #     # GHCR dated
-      #     docker buildx imagetools create \
-      #       -t ghcr.io/aterfax/pbs-client:${DATE} \
-      #       ghcr.io/aterfax/pbs-client:amd64-${DATE} \
-      #       ghcr.io/aterfax/pbs-client:arm64-${DATE}
+          # GHCR dated
+          docker buildx imagetools create \
+            -t ghcr.io/aterfax/pbs-client:${DATE} \
+            ghcr.io/aterfax/pbs-client:amd64-${DATE} \
+            ghcr.io/aterfax/pbs-client:arm64-${DATE}
