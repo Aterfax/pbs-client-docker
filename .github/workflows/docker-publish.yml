@@ -57,10 +57,24 @@ jobs:
             --push
 
       ###########################################################
+      # Build ARM64 debs
+      ###########################################################
+      - name: Build ARM64 packages
+        run: |
+          docker buildx build \
+            -o proxmox-backup-arm64/packages \
+            --build-arg buildoptions="cross github client" \
+            --build-arg baseimage=debian:bookworm-slim \
+            --platform linux/amd64 \
+            -f proxmox-backup-arm64/.github/Dockerfile.crosscompile-arm64 \
+            proxmox-backup-arm64
+
+      ###########################################################
       # Build + push ARM64 image (uses Dockerfile.arm64)
       ###########################################################
       - name: Build and push ARM64 image
         run: |
+          cp -r proxmox-backup-arm64/packages docker/packages 
           docker buildx build \
             --platform linux/arm64 \
             -f docker/Dockerfile.arm64 \
