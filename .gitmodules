@@ -1,0 +1,3 @@
+[submodule "proxmox-backup-arm64"]
+	path = proxmox-backup-arm64
+	url = https://github.com/wofferl/proxmox-backup-arm64.git
