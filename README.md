@@ -179,7 +179,7 @@ e.g.
 # and updates a symlink at /backup/myfolder-latest pointing to it.
 
 SRC_DIR="/mounts/myfolder"
-SYMLINK_DIR="/backup"
+SYMLINK_DIR="/backups"
 
 # Determine the "latest" subdirectory
 latest_dir=$(find "$SRC_DIR" -mindepth 1 -maxdepth 1 -type d ! -name '.*' -printf '%T@ %p\n' | sort -nr | head -n1 | awk '{print $2}')
@@ -237,6 +237,7 @@ If you'd like to contribute to this project, follow these steps:
 This project is licensed under the [GNU General Public License v3 (GPL-3)](https://www.tldrlegal.com/license/gnu-general-public-license-v3-gpl-3).
 
 In short: You may copy, distribute and modify the software as long as you track changes/dates in source files. Any modifications to or software including (via compiler) GPL-licensed code must also be made available under the GPL along with build & install instructions.
+
 
 
 
