@@ -52,3 +52,9 @@ fi
 
 export PBS_PASSWORD="${PBS_PASSWORD}"
 export PBS_REPOSITORY="${PBS_USER}@${PBS_ENDPOINT}:${PBS_DATASTORE}"
+
+# Timeout value must be a positive whole number if set
+if [ -n "${HOOK_TIMEOUT:-}" ] && ! [[ "$HOOK_TIMEOUT" =~ ^[0-9]+$ ]]; then
+    echo "[user-hooks] WARNING: HOOK_TIMEOUT='$HOOK_TIMEOUT' is not a valid whole number. Falling back to default 300."
+    timeout=300
+fi

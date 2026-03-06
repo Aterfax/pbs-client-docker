@@ -40,6 +40,7 @@ For more in depth instructions, see: [Using-the-DockerHub-provided-image](#Using
 * **Customizable Backup Options** - Append extra PBS CLI options via `PBS_BACKUP_CMD_APPEND_EXTRA_OPTS` and restore options via `PBS_RESTORE_CMD_APPEND_EXTRA_OPTS`.
 * **Healthchecks.io Integration** - Optional monitoring via self-hosted or central Healthchecks.io.
 * **Email Notifications** - Optional success/failure notifications via SMTP configuration.
+* **Bash based ``pre.d`` and ``post.d`` user hooks** - Optional user supplied bash scripts can run before or after backup.
 * **Timezone Configurable** - Set container timezone with `TZ`.
 * **S6-based Supervision** - Long-running container managed with s6, optional mail service, and clean logging.
 
@@ -70,6 +71,7 @@ For more in depth instructions, see: [Using-the-DockerHub-provided-image](#Using
 * Populate the environment file with the correct ``PBS_ENCRYPTION_PASSWORD`` value from the container logs or from your provided ``pem`` /  ``encryption-key.json`` files.
 * Restart the container and check the logs to confirm a successful backup.
   * You can start a backup with the ``backupnow`` command from inside the container, i.e. ``docker exec -it pbs-client backupnow``
+* If you need to run custom bash scripts before or after the backup completes, you can supply these with the ``$PRE_HOOK_DIR`` and ``POST_HOOK_DIR`` mechanism / directories. See the ``.env.example`` and ensure you mount the required directories within the container in the ``docker-compose.yml``.
 * Review the other helper scripts [from here](https://github.com/Aterfax/pbs-client-docker/tree/main/docker/src/helper_scripts) which are also available from the container terminal.
 
 
@@ -97,37 +99,41 @@ To be filled in.
 
 The following environment variables can be configured to customize the behavior of the Docker container:
 
-| Variable Name                         | Default Docker Compose Value           | Valid Values                 | Description                                                          |
-| ------------------------------------- | -------------------------------------- | ---------------------------- | -------------------------------------------------------------------- |
-| **PBS_ENCRYPTION_PASSWORD**           | `123456789abcdefghijklmn`              | A string                     | Required: Password for encrypting backups.                           |
-| **PBS_ENDPOINT**                      | `pbs.mydomain.com`                     | Valid hostname or IP         | Required: PBS server endpoint.                                       |
-| **PBS_DATASTORE**                     | `test-datastore`                       | Any valid PBS datastore name | Required: Target datastore on the PBS server.                        |
-| **CRON_SCHEDULE**                     | `0 */4 * * *`                          | Any valid cron expression    | Required: Schedule for automatic backups.                            |
-| **CRON_BACKUP_ONLY**                  | `0`                                    | `0` or `1`                   | Optional: `1` to skip backup on startup, `0` to run immediately.     |
-| **UNENCRYPTED**                       | `0`                                    | `0` or `1`                   | Optional: `1` to allow unencrypted backups (not recommended).        |
-| **PBS_API_KEY_NAME**                  | `username@pam!test`                    | Valid PBS API key name       | Optional: API key name; preferred over PBS_USER/PBS_PASSWORD.        |
-| **PBS_API_KEY_SECRET**                | `4054356a-f1a6-441e-86fc-e338367db185` | Valid PBS API key secret     | Optional: Secret for PBS_API_KEY_NAME.                               |
-| **PBS_USER**                          | *(empty)*                              | PBS username                 | Optional: Only required if API key is not set.                       |
-| **PBS_PASSWORD**                      | *(empty)*                              | PBS password                 | Optional: Only required if API key is not set.                       |
-| **PBS_FINGERPRINT**                   | *(empty)*                              | SHA1 fingerprint             | Optional: Required if using a self-signed SSL certificate.           |
-| **PBS_DATASTORE_NS**                  | `test`                                 | Any string                   | Optional: Namespace within datastore.                                |
-| **PBS_BACKUP_CMD_APPEND_EXTRA_OPTS**  | *(empty)*                              | Any valid PBS CLI option     | Optional: Extra options appended to `proxmox-backup-client backup`.  |
-| **PBS_RESTORE_CMD_APPEND_EXTRA_OPTS** | *(empty)*                              | Any valid PBS CLI option     | Optional: Extra options appended to `proxmox-backup-client restore`. |
-| **HEALTHCHECKSUUID**                  | `aa7b0de3-2c17-4fce-b051-388a5415e656` | Valid UUID                   | Optional: Healthchecks.io UUID for monitoring.                       |
-| **HEALTHCHECKSHOSTNAME**              | `https://healthchecks.mydomain.com`    | Valid URL                    | Optional: Healthchecks.io host.                                      |
-| **HEALTHCHECKS_SELF_HOSTED**          | `true`                                 | `true` or `false`            | Optional: Whether Healthchecks.io is self-hosted.                    |
-| **HEALTHCHECKS_PING_ENDPOINT_DIR**    | *(empty / ping default)*               | Any string                   | Optional: Subdirectory for ping endpoint; defaults to `ping`.        |
-| **TZ**                                | `Etc/UTC`                              | Any valid timezone string    | Container timezone.                                                  |
-| **SMTP_HOST**                         | `smtp.mydomain.com`                    | Valid SMTP hostname          | Optional: SMTP server to use for email notifications.                       |
-| **SMTP_PORT**                         | `587`                                  | Valid port number            | Optional: SMTP server port.                                                 |
-| **SMTP_USER**                         | `backup@mydomain.com`                  | Valid email/user             | Optional: SMTP server username.                                             |
-| **SMTP_PASSWORD**                     | `supersecret`                          | Valid password               | Optional: SMTP server password.                                             |
-| **SMTP_FROM**                         | `backup@mydomain.com`                  | Valid email                  | Optional: From address for notifications.                            |
-| **SMTP_TO**                           | `admin@mydomain.com`                   | Valid email                  | Optional: Recipient of notifications.                                |
-| **SMTP_TLS**                          | `true`                                 | `true` or `false`            | Optional: Use TLS for SMTP.                                          |
-| **SMTP_STARTTLS**                     | `false`                                 | `true` or `false`            | Optional: Use STARTTLS for SMTP.                                     |
-| **EMAIL_ON_SUCCESS**                  | `0`                                    | `0` or `1`                   | Optional: Send email if backup succeeds.                             |
-| **EMAIL_ON_FAILURE**                  | `1`                                    | `0` or `1`                   | Optional: Send email if backup fails.                                |
+| Variable Name                         | Default Docker Compose Value           | Valid Values                       | Description                                                          |
+| ------------------------------------- | -------------------------------------- | ---------------------------------- | -------------------------------------------------------------------- |
+| **PBS_ENCRYPTION_PASSWORD**           | `123456789abcdefghijklmn`              | A string                           | Required: Password for encrypting backups.                           |
+| **PBS_ENDPOINT**                      | `pbs.mydomain.com`                     | Valid hostname or IP               | Required: PBS server endpoint.                                       |
+| **PBS_DATASTORE**                     | `test-datastore`                       | Any valid PBS datastore name       | Required: Target datastore on the PBS server.                        |
+| **CRON_SCHEDULE**                     | `0 */4 * * *`                          | Any valid cron expression          | Required: Schedule for automatic backups.                            |
+| **CRON_BACKUP_ONLY**                  | `0`                                    | `0` or `1`                         | Optional: `1` to skip backup on startup, `0` to run immediately.     |
+| **UNENCRYPTED**                       | `0`                                    | `0` or `1`                         | Optional: `1` to allow unencrypted backups (not recommended).        |
+| **PBS_API_KEY_NAME**                  | `username@pam!test`                    | Valid PBS API key name             | Optional: API key name; preferred over PBS_USER/PBS_PASSWORD.        |
+| **PBS_API_KEY_SECRET**                | `4054356a-f1a6-441e-86fc-e338367db185` | Valid PBS API key secret           | Optional: Secret for PBS_API_KEY_NAME.                               |
+| **PBS_USER**                          | *(empty)*                              | PBS username                       | Optional: Only required if API key is not set.                       |
+| **PBS_PASSWORD**                      | *(empty)*                              | PBS password                       | Optional: Only required if API key is not set.                       |
+| **PBS_FINGERPRINT**                   | *(empty)*                              | SHA1 fingerprint                   | Optional: Required if using a self-signed SSL certificate.           |
+| **PBS_DATASTORE_NS**                  | `test`                                 | Any string                         | Optional: Namespace within datastore.                                |
+| **PBS_BACKUP_CMD_APPEND_EXTRA_OPTS**  | *(empty)*                              | Any valid PBS CLI option           | Optional: Extra options appended to `proxmox-backup-client backup`.  |
+| **PBS_RESTORE_CMD_APPEND_EXTRA_OPTS** | *(empty)*                              | Any valid PBS CLI option           | Optional: Extra options appended to `proxmox-backup-client restore`. |
+| **HEALTHCHECKSUUID**                  | `aa7b0de3-2c17-4fce-b051-388a5415e656` | Valid UUID                         | Optional: Healthchecks.io UUID for monitoring.                       |
+| **HEALTHCHECKSHOSTNAME**              | `https://healthchecks.mydomain.com`    | Valid URL                          | Optional: Healthchecks.io host.                                      |
+| **HEALTHCHECKS_SELF_HOSTED**          | `true`                                 | `true` or `false`                  | Optional: Whether Healthchecks.io is self-hosted.                    |
+| **HEALTHCHECKS_PING_ENDPOINT_DIR**    | *(empty / ping default)*               | Any string                         | Optional: Subdirectory for ping endpoint; defaults to `ping`.        |
+| **TZ**                                | `Etc/UTC`                              | Any valid timezone string          | Container timezone.                                                  |
+| **SMTP_HOST**                         | `smtp.mydomain.com`                    | Valid SMTP hostname                | Optional: SMTP server to use for email notifications.                |
+| **SMTP_PORT**                         | `587`                                  | Valid port number                  | Optional: SMTP server port.                                          |
+| **SMTP_USER**                         | `backup@mydomain.com`                  | Valid email/user                   | Optional: SMTP server username.                                      |
+| **SMTP_PASSWORD**                     | `supersecret`                          | Valid password                     | Optional: SMTP server password.                                      |
+| **SMTP_FROM**                         | `backup@mydomain.com`                  | Valid email                        | Optional: From address for notifications.                            |
+| **SMTP_TO**                           | `admin@mydomain.com`                   | Valid email                        | Optional: Recipient of notifications.                                |
+| **SMTP_TLS**                          | `true`                                 | `true` or `false`                  | Optional: Use TLS for SMTP.                                          |
+| **SMTP_STARTTLS**                     | `false`                                | `true` or `false`                  | Optional: Use STARTTLS for SMTP.                                     |
+| **EMAIL_ON_SUCCESS**                  | `0`                                    | `0` or `1`                         | Optional: Send email if backup succeeds.                             |
+| **EMAIL_ON_FAILURE**                  | `1`                                    | `0` or `1`                         | Optional: Send email if backup fails.                                |
+| **PRE_HOOK_DIR**                      | `/hooks/pre.d`                         | Any non-empty string (folder path) | Optional: Directory containing bash script pre-backup hooks to run.  |
+| **POST_HOOK_DIR**                     | `/hooks/post.d`                        | Any non-empty string (folder path) | Optional: Directory containing bash script post-backup hooks to run. |
+| **HOOK_TIMEOUT**                      | `300`                                  | Any valid whole number             | Optional: The maximum time in seconds all hooks are allowed to take. |
+
 
 ## FAQ
 
@@ -160,6 +166,34 @@ You can either:
 * Mount your folder targets within ``/backup/`` only.
 * Use the ``PBS_BACKUP_CMD_APPEND_EXTRA_OPTS`` environment variable to set ``--include-dev`` arguments as per documentation here: https://pbs.proxmox.com/docs/backup-client.html#creating-backups
 <br><br>
+
+### My backup directory regularly changes name due to snapshotting
+
+You can likely address this using a custom ``pre.d`` script which runs inside the container to update a symlink immediately prior to the backup. You can create a script and supply it with the ``$PRE_HOOK_DIR`` mechanism / directories.
+
+e.g.
+
+```bash
+#!/usr/bin/env bash
+# Finds the most recently modified subdirectory inside /mounts/myfolder
+# and updates a symlink at /backup/myfolder-latest pointing to it.
+
+SRC_DIR="/mounts/myfolder"
+SYMLINK_DIR="/backup"
+
+# Determine the "latest" subdirectory
+latest_dir=$(find "$SRC_DIR" -mindepth 1 -maxdepth 1 -type d ! -name '.*' -printf '%T@ %p\n' | sort -nr | head -n1 | awk '{print $2}')
+
+# Exit silently if no subdirectories found
+[ -n "$latest_dir" ] || exit 0
+
+# Construct the symlink path: /backup/<basename-of-source>-latest
+symlink_path="$SYMLINK_DIR/$(basename "$SRC_DIR")-latest"
+
+# Update symlink
+ln -sfn "$latest_dir" "$symlink_path"
+```
+
 
 ### How can I exclude a subdirectory within one of my backup folders?
 

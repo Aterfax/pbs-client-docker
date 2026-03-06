@@ -1,0 +1,67 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+run_hook_dir() {
+    local hookdir="$1"
+    local timeout="${HOOK_TIMEOUT:-300}"
+
+    # Timeout value must be a positive whole number
+    if ! [[ "$timeout" =~ ^[0-9]+$ ]]; then
+        timeout=300
+    fi
+
+    if [ -z "$hookdir" ]; then
+        echo "[user-hooks] no hook directory specified"
+        return 0
+    fi
+
+    if [ ! -d "$hookdir" ]; then
+        echo "[user-hooks] hook directory does not exist: $hookdir"
+        return 0
+    fi
+
+    echo "[user-hooks] scanning $hookdir"
+
+    local hook
+    while IFS= read -r hook; do
+
+        # must be executable regular file
+        if [ ! -f "$hook" ] || [ ! -x "$hook" ]; then
+            echo "[user-hooks] skip (not executable): $hook"
+            continue
+        fi
+
+        # enforce bash shebang
+        IFS= read -r firstline < "$hook"
+        case "$firstline" in
+            '#!'*bash*)
+                ;;
+            *)
+                echo "[user-hooks] skip (not bash): $hook"
+                continue
+                ;;
+        esac
+
+        echo "[user-hooks] run $hook"
+
+        set +e
+        # Pipe the script's stdout/stderr through sed to prefix every line with the hook path
+        timeout "$timeout" bash "$hook" 2>&1 | sed "s|^|[user-hooks][$hook] |"
+        # Capture the first command in the pipe exit code
+        rc=${PIPESTATUS[0]}
+        set -e
+
+        if [ "$rc" -eq 0 ]; then
+            echo "[user-hooks][$hook] Exited status $rc"
+        elif [ "$rc" -eq 124 ]; then
+            echo "[user-hooks][$hook] Timed out! Exited status $rc"
+        else
+            echo "[user-hooks][$hook] Error! Exited status $rc"
+        fi
+
+    done < <(
+        find "$hookdir" -maxdepth 1 -type f -print | sort
+    )
+
+    return 0
+}
