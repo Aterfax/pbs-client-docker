@@ -5,6 +5,8 @@
 ulimit -n 65536
 ulimit -u 65536
 
+source /etc/s6-overlay/s6-rc.d/backup/hooks_include
+
 path_to_filename() {
     local path="$1"
     local path_no_trailing_slash="${path%/}"  # Remove the trailing slash, if any
@@ -72,9 +74,19 @@ if [ "$CRON_BACKUP_ONLY" = "0" ] || [ -e "${lastrunfile}" ]; then
         curl -fsS -m 10 --retry 5 -o /dev/null $HEALTHCHECKSURL/start
     fi
 
+    # Run pre backup user hooks
+    [ -n "$PRE_HOOK_DIR" ] && run_hook_dir "$PRE_HOOK_DIR"
+
     # Run the actual backup command.
     ${BACKUPCMD} 2>&1
     BACKUP_EXIT_CODE=$?
+
+    # Run post backup user hooks
+    if [ "${BACKUP_EXIT_CODE}" -eq 0 ]; then
+        [ -n "$POST_HOOK_DIR" ] && run_hook_dir "$POST_HOOK_DIR"
+    else
+        echo "Backup failed, skipping post hooks"
+    fi
 
     # First run touches the file. Backups will set the date.
     echo "$(date +"%Y-%m-%d %H:%M:%S")" > "${lastrunfile}"

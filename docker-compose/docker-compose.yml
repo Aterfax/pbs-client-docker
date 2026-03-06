@@ -1,7 +1,6 @@
-version: '3.3'
 services:
   pbs-client:
-    image: aterfax/pbs-client
+    image: aterfax/pbs-client:latest
     # Adjust the container name and hostname to change the naming within the PBS server
     # backups, e.g. this would set ``host/pbs-client``.
     container_name: pbs-client
@@ -22,4 +21,8 @@ services:
       - ./backups/test1:/backups/test1:ro
       - ./backups/test2:/backups/test2:ro
       - ./backups/test3:/backups/test3:ro
+      # If you want to provide bash hooks, you can mount volumes as below. See the .env.example
+      # for more information.
+      #- ./hooks/pre.d:/hooks/pre.d:ro
+      #- ./hooks/post.d:/hooks/post.d:ro
 

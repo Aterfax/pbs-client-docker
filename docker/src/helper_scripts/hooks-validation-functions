@@ -1,0 +1,28 @@
+#!/bin/bash
+
+assert_equals() {
+    if [ "$1" != "$2" ]; then
+        echo "ASSERT FAIL: expected '$1' got '$2'"
+        exit 1
+    fi
+    echo "Test passed!"
+    echo
+}
+
+assert_contains() {
+    if ! grep -q "$2" <<< "$1"; then
+        echo "ASSERT FAIL: '$2' not found"
+        exit 1
+    fi
+    echo "Test passed!"
+    echo
+}
+
+assert_exit_code() {
+    if [ "$1" -ne "$2" ]; then
+        echo "ASSERT FAIL: exit code $2 expected $1"
+        exit 1
+    fi
+    echo "Test passed!"
+    echo
+}
