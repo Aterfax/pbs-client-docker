@@ -17,9 +17,6 @@ path_to_filename() {
 
 lastrunfile="/tmp/pbs_client_lastrun"
 
-# Run pre backup user hooks
-[ -n "$PRE_HOOK_DIR" ] && run_hook_dir "$PRE_HOOK_DIR"
-
 BACKUP_DIRECTORIES=()
 # Iterate over each subdirectory under /backup and add its full path to the array
 for dir in /backups/*; do
@@ -76,6 +73,9 @@ if [ "$CRON_BACKUP_ONLY" = "0" ] || [ -e "${lastrunfile}" ]; then
     if [ -n "$HEALTHCHECKSURL" ]; then
         curl -fsS -m 10 --retry 5 -o /dev/null $HEALTHCHECKSURL/start
     fi
+
+    # Run pre backup user hooks
+    [ -n "$PRE_HOOK_DIR" ] && run_hook_dir "$PRE_HOOK_DIR"
 
     # Run the actual backup command.
     ${BACKUPCMD} 2>&1
