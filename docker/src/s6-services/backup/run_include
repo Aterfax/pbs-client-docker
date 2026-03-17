@@ -15,11 +15,11 @@ path_to_filename() {
     echo "${filename}"
 }
 
+lastrunfile="/tmp/pbs_client_lastrun"
+
 # Note the first evaluation is key and will initiate backup if the user opts
 # to allow the first backup or we're
 if [ "$CRON_BACKUP_ONLY" = "0" ] || [ -e "${lastrunfile}" ]; then
-
-    lastrunfile="/tmp/pbs_client_lastrun"
 
     # Run pre backup user hooks
     [ -n "$PRE_HOOK_DIR" ] && run_hook_dir "$PRE_HOOK_DIR"
