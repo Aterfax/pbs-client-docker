@@ -72,7 +72,7 @@ mkdir -p /var/spool/nullmailer/tmp
 touch /var/spool/nullmailer/trigger
 
 # nullmailer must own its spool
-chown -R nullmail:nullmail /var/spool/nullmailer
+#chown -R nullmail:nullmail /var/spool/nullmailer # Not needed since we run service as root.
 chmod 750 /var/spool/nullmailer
 chmod 700 /var/spool/nullmailer/{queue,tmp}
 chmod 600 /var/spool/nullmailer/trigger
