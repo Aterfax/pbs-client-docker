@@ -15,64 +15,65 @@ path_to_filename() {
     echo "${filename}"
 }
 
-lastrunfile="/tmp/pbs_client_lastrun"
-
-# Run pre backup user hooks
-[ -n "$PRE_HOOK_DIR" ] && run_hook_dir "$PRE_HOOK_DIR"
-
-BACKUP_DIRECTORIES=()
-# Iterate over each subdirectory under /backup and add its full path to the array
-for dir in /backups/*; do
-    if [[ -d "$dir" ]]; then
-        BACKUP_DIRECTORIES+=("$dir/")
-    fi
-done
-
-# Print the contents of the array if this is first run only.
-if [ ! -e "${lastrunfile}" ]; then
-    echo "## Detected backup directories:"
-    echo -e "#"
-    if [ ${#BACKUP_DIRECTORIES[@]} -eq 0 ]; then
-        echo "# Nothing to backup."
-    else
-        for path in "${BACKUP_DIRECTORIES[@]}"; do
-            echo -e "# $path"
-        done
-        echo -e "#\n"
-    fi
-fi
-
-# Construct the directory target list with the proxmox-backup-client syntax.
-# This makes 1 .pxar file per path.
-TARGETS=""
-for dir in "${BACKUP_DIRECTORIES[@]}"; do
-    TARGET=$(path_to_filename "$dir").pxar:$dir
-    TARGETS="${TARGETS} ${TARGET}"
-done
-
-# Build the backup command we want to execute. 
-BACKUPCMD="proxmox-backup-client backup ${TARGETS}"
-
-if [ -n "$PBS_DATASTORE_NS" ]; then
-    BACKUPCMD+=" --ns ${PBS_DATASTORE_NS}"
-fi
-
-if [ -n "$PBS_BACKUP_CMD_APPEND_EXTRA_OPTS" ]; then
-    BACKUPCMD+=" ${PBS_BACKUP_CMD_APPEND_EXTRA_OPTS}"
-fi
-
-# Source the variables from the setup_check scripting include file.
-source /etc/s6-overlay/s6-rc.d/setup_check/run_include
-
-# Print out the repository and backup command on first run only.
-if [ ! -e "${lastrunfile}" ]; then
-    echo -e "## Backing up to repository: \n# ${PBS_REPOSITORY}\n"
-    echo -e "## Executing backup command: \n# ${BACKUPCMD}\n"
-fi
-
 # Note the first evaluation is key and will initiate backup if the user opts
 # to allow the first backup or we're
 if [ "$CRON_BACKUP_ONLY" = "0" ] || [ -e "${lastrunfile}" ]; then
+
+    lastrunfile="/tmp/pbs_client_lastrun"
+
+    # Run pre backup user hooks
+    [ -n "$PRE_HOOK_DIR" ] && run_hook_dir "$PRE_HOOK_DIR"
+
+    BACKUP_DIRECTORIES=()
+    # Iterate over each subdirectory under /backup and add its full path to the array
+    for dir in /backups/*; do
+        if [[ -d "$dir" ]]; then
+            BACKUP_DIRECTORIES+=("$dir/")
+        fi
+    done
+
+    # Print the contents of the array if this is first run only.
+    if [ ! -e "${lastrunfile}" ]; then
+        echo "## Detected backup directories:"
+        echo -e "#"
+        if [ ${#BACKUP_DIRECTORIES[@]} -eq 0 ]; then
+            echo "# Nothing to backup."
+        else
+            for path in "${BACKUP_DIRECTORIES[@]}"; do
+                echo -e "# $path"
+            done
+            echo -e "#\n"
+        fi
+    fi
+
+    # Construct the directory target list with the proxmox-backup-client syntax.
+    # This makes 1 .pxar file per path.
+    TARGETS=""
+    for dir in "${BACKUP_DIRECTORIES[@]}"; do
+        TARGET=$(path_to_filename "$dir").pxar:$dir
+        TARGETS="${TARGETS} ${TARGET}"
+    done
+
+    # Build the backup command we want to execute. 
+    BACKUPCMD="proxmox-backup-client backup ${TARGETS}"
+
+    if [ -n "$PBS_DATASTORE_NS" ]; then
+        BACKUPCMD+=" --ns ${PBS_DATASTORE_NS}"
+    fi
+
+    if [ -n "$PBS_BACKUP_CMD_APPEND_EXTRA_OPTS" ]; then
+        BACKUPCMD+=" ${PBS_BACKUP_CMD_APPEND_EXTRA_OPTS}"
+    fi
+
+    # Source the variables from the setup_check scripting include file.
+    source /etc/s6-overlay/s6-rc.d/setup_check/run_include
+
+    # Print out the repository and backup command on first run only.
+    if [ ! -e "${lastrunfile}" ]; then
+        echo -e "## Backing up to repository: \n# ${PBS_REPOSITORY}\n"
+        echo -e "## Executing backup command: \n# ${BACKUPCMD}\n"
+    fi
+
     if [ -n "$HEALTHCHECKSURL" ]; then
         curl -fsS -m 10 --retry 5 -o /dev/null $HEALTHCHECKSURL/start
     fi
