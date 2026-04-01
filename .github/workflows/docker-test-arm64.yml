@@ -36,7 +36,7 @@ jobs:
 
       # Setup Docker Buildx
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       # Build ARM64 DEBs
       - name: Build ARM64 packages
