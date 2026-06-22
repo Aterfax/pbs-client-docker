@@ -69,7 +69,10 @@ hostname >/etc/mailname
 mkdir -p /var/spool/nullmailer/queue
 mkdir -p /var/spool/nullmailer/tmp
 
-touch /var/spool/nullmailer/trigger
+if [ ! -p /var/spool/nullmailer/trigger ]; then
+    rm -f /var/spool/nullmailer/trigger
+    mkfifo /var/spool/nullmailer/trigger
+fi
 
 # nullmailer must own its spool
 #chown -R nullmail:nullmail /var/spool/nullmailer # Not needed since we run service as root.
