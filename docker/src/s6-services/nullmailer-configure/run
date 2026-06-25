@@ -74,4 +74,9 @@ mkdir -p /var/spool/nullmailer/tmp
 chmod 750 /var/spool/nullmailer
 chmod 700 /var/spool/nullmailer/{queue,tmp}
 
+# Ensure any non-pipe trigger files are removed prior to service start
+if [ ! -p /var/spool/nullmailer/trigger ]; then
+    rm -f /var/spool/nullmailer/trigger
+fi 
+
 echo "nullmailer configured."
