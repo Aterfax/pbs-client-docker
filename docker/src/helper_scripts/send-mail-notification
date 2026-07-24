@@ -24,6 +24,7 @@ fi
 
 # Send the email via nullmailer, specifying the FROM address
 if echo "${BODY}" | mail -s "${SUBJECT}" -r "${SMTP_FROM}" "${SMTP_TO}"; then
+    echo "0" > /var/spool/nullmailer/trigger
     echo "Email notification queued successfully for status: ${STATUS}"
 else
     rc=$?
