@@ -1,5 +1,14 @@
 #!/bin/bash
+# shellcheck shell=bash
 
+# =============================================================================
+# Hooks validation functions
+# Provides test assertion functions for validating hook behaviors
+# =============================================================================
+
+# Assert that two values are equal
+# Args: $1 - expected value, $2 - actual value
+# Returns: exits with code 1 if values don't match, 0 otherwise
 assert_equals() {
     if [ "$1" != "$2" ]; then
         echo "ASSERT FAIL: expected '$1' got '$2'"
@@ -9,6 +18,9 @@ assert_equals() {
     echo
 }
 
+# Assert that a string contains a substring
+# Args: $1 - haystack string, $2 - needle substring
+# Returns: exits with code 1 if substring not found, 0 otherwise
 assert_contains() {
     if ! grep -q "$2" <<< "$1"; then
         echo "ASSERT FAIL: '$2' not found"
@@ -18,6 +30,9 @@ assert_contains() {
     echo
 }
 
+# Assert that an exit code matches expected value
+# Args: $1 - actual exit code, $2 - expected exit code
+# Returns: exits with code 1 if codes don't match, 0 otherwise
 assert_exit_code() {
     if [ "$1" -ne "$2" ]; then
         echo "ASSERT FAIL: exit code $2 expected $1"

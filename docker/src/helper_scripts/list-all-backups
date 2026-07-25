@@ -1,17 +1,39 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
+# =============================================================================
+# List all backups script
+# Displays all container associated information about backups on the proxmox 
+# backup server
+# e.g.
+#
+# root@pbs-client:/# list-all-backups
+# host/pbs-client/2026-07-24T21:25:01Z 0.00 MB
+# host/pbs-client/2026-07-25T14:27:04Z 0.00 MB
+# host/pbs-client/2026-02-22T16:25:01Z 0.00 MB
+#
+# Must be run within the container. i.e. start a terminal in the container:
+#        docker exec -it container_name bash
+# =============================================================================
+
 source /etc/s6-overlay/s6-rc.d/setup_check/run_include
 
 # We need to build this command in case namespaces are in use.
+# This dynamically constructs the proxmox-backup-client command with namespace support
 LISTCMD="proxmox-backup-client snapshot list"
 if [ -n "$PBS_DATASTORE_NS" ]; then
     LISTCMD+=" --ns ${PBS_DATASTORE_NS}"
 fi
 LISTCMD+=" --output-format json"
 
+# Execute the command and capture output
 data=$(${LISTCMD})
 host_name=$(hostname)
+
+# Process the JSON data to extract and format backup information:
+# 1. Filter snapshots by hostname (backup-id)
+# 2. Format output with backup type, hostname, timestamp, and size
+# 3. Convert size from bytes to MB with 2 decimal places
 echo "${data}" | jq -r --arg host "${host_name}" '
     map(select(.["backup-id"] == $host)) | 
     map("\(.["backup-type"])/\($host)/\(.["backup-time"] | tonumber | strftime("%Y-%m-%dT%H:%M:%SZ")) \(.size / (1024 * 1024) | tostring + " MB" | split(".") | .[0] + "." + .[1][:2] + " MB")") | 

@@ -1,6 +1,20 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
+# =============================================================================
+# Run an immediate backup script.
+# Executes the primary system backup routine and then includes the full logic 
+# from the s6-overlay backup service script which does the actual backup.
+#
+# Must be run within the container. i.e. start a terminal in the container:
+#        docker exec -it container_name bash
+# =============================================================================
+
+# Define a temporary file path used as a marker to record when this script
+# was last executed or started. This helps in state tracking and logging.
 lastrunfile="/tmp/pbs_client_lastrun"
 touch "$lastrunfile"
+
+# Include the main backup logic from the s6 overlay service configuration.
+# This file contains the actual commands needed to perform data backups.
 /etc/s6-overlay/s6-rc.d/backup/run_include
