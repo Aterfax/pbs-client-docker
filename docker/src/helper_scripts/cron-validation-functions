@@ -1,19 +1,32 @@
 #!/bin/bash
+# shellcheck shell=bash
 
+# =============================================================================
+# cron validation functions
+# Provides tools to check if cron expressions are valid
+# =============================================================================
+
+# Check if a cron expression is valid
+# Args: $1 - cron expression to validate
+# Returns: 0 if valid, 1 if invalid
 validate_cron_expression() {
     local cron_expression="$1"
+    # Regex pattern for cron validation
     # https://stackoverflow.com/a/63729682
     # https://regex101.com/r/RtLgqG
     local regex='^((((\d+,)+\d+|(\d+(\/|-|#)\d+)|\d+L?|\*(\/\d+)?|L(-\d+)?|\?|[A-Z]{3}(-[A-Z]{3})?) ?){5,7})|(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)$'
 
+    # Test the expression against the regex
     if echo "$cron_expression" | grep -Pq "$regex"; then
-        return 0  # Valid cron expression
+        return 0  # Valid expression
     else
-        return 1  # Invalid cron expression
+        return 1  # Invalid expression
     fi
 }
 
-# Test valid cron expressions
+# Test a cron expression that should be valid
+# Args: $1 - cron expression expected to pass validation
+# Returns: 0 if passed, 1 if failed
 assert_valid_cron() {
     local cron_expr="$1"
     if validate_cron_expression "$cron_expr"; then
@@ -24,7 +37,9 @@ assert_valid_cron() {
     fi
 }
 
-# Test invalid cron expressions
+# Test a cron expression that should be invalid
+# Args: $1 - cron expression expected to fail validation
+# Returns: 0 if passed, 1 if failed
 assert_invalid_cron() {
     local cron_expr="$1"
     if ! validate_cron_expression "$cron_expr"; then

@@ -1,18 +1,44 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
+# =============================================================================
+# List backup files interactively for a single backup script
+# Displays all container associated backup files on the proxmox backup server
+# for the user selected backup.
+# e.g.
+#
+# root@pbs-client:/# list-backup-files 
+# Select a backup time:
+# 1. 2026-02-21T19:43:09Z
+# 2. 2026-02-21T19:44:00Z
+# 3. 2026-02-21T19:44:59Z
+#
+# Enter the number of the backup you want to select: 1
+# host/pbs-client/2026-02-21T19:43:09Z:
+#         backups-test1.pxar.didx
+#         catalog.pcat1.didx
+#         rsa-encrypted.key.blob
+#         index.json.blob
+#
+# Must be run within the container. i.e. start a terminal in the container:
+#        docker exec -it container_name bash
+# =============================================================================
+
 source /etc/s6-overlay/s6-rc.d/setup_check/run_include
 
-# We need to build this command in case namespaces are in use.
+# Build the command to list snapshots, potentially including namespace if set
 LISTCMD="proxmox-backup-client snapshot list"
 if [ -n "$PBS_DATASTORE_NS" ]; then
     LISTCMD+=" --ns ${PBS_DATASTORE_NS}"
 fi
 LISTCMD+=" --output-format json"
 
+# Execute the snapshot list command and get host name
 data=$(${LISTCMD})
 host_name=$(hostname)
 
+# Extract unique backup times for the current host from the JSON data
+# This uses jq to filter backups by host ID, convert timestamps, and sort/uniq them
 backup_times=($(echo "$data" | jq -r --arg host "$host_name" '
     .[] |
     select(.["backup-id"] == $host) |
@@ -28,7 +54,7 @@ done
 # Prompt to select a backup time
 read -p "Enter the number of the backup you want to select: " selection
 
-# Validate user input
+# Validate user input - ensure selection is a valid number within range
 if [[ $selection =~ ^[0-9]+$ && $selection -ge 1 && $selection -le ${#backup_times[@]} ]]; then
     # Store selected backup time in a variable
     selected_backup_time="${backup_times[$((selection-1))]}"
@@ -37,6 +63,7 @@ else
     exit 1
 fi
 
+# Display the files for the selected backup with their paths
 echo "$data" | jq -r --arg host "$host_name" --arg timestamp "$selected_backup_time" '
     .[] |
     select(.["backup-id"] == $host and (.["backup-time"] | tonumber | strftime("%Y-%m-%dT%H:%M:%SZ")) == $timestamp) |

@@ -1,22 +1,45 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
+# =============================================================================
+# List all backup files script
+# Displays all container associated backup files on the proxmox backup server
+# e.g.
+#
+# root@pbs-client:/# list-all-backup-files
+# host/pbs-client/2026-07-24T22:15:01Z:
+#         backups-test1.pxar.didx
+#         backups-test2.pxar.didx
+#         backups-test3.pxar.didx
+#         catalog.pcat1.didx
+#         rsa-encrypted.key.blob
+#         index.json.blob
+#
+# Must be run within the container. i.e. start a terminal in the container:
+#        docker exec -it container_name bash
+# =============================================================================
+
 source /etc/s6-overlay/s6-rc.d/setup_check/run_include
 
-# We need to build this command in case namespaces are in use.
+# Build the command dynamically to account for namespaces
 LISTCMD="proxmox-backup-client snapshot list"
 if [ -n "$PBS_DATASTORE_NS" ]; then
     LISTCMD+=" --ns ${PBS_DATASTORE_NS}"
 fi
 LISTCMD+=" --output-format json"
 
+# Execute the command and capture output
 data=$(${LISTCMD})
 host_name=$(hostname)
 
+# Process the JSON data to extract relevant backup information:
+# 1. Filter snapshots by hostname (backup-id)
+# 2. Format output as "backup-type/host/timestamp: filename"
+# 3. Group files by timestamp using awk for clean display
 echo "$data" | jq -r --arg host "$host_name" '
     .[] |
     select(.["backup-id"] == $host) |
-    "\(.["backup-type"])/\($host)/\(.["backup-time"] | tonumber | strftime("%Y-%m-%dT%H:%M:%SZ")): \(.files[].filename)"' | 
+    "\(.["backup-type"])/\($host)/\(.["backup-time"] | tonumber | strftime("%Y-%m-%dT%H:%M:%SZ")): \(.files[].filename)"' |
     awk -F ': ' '
         {
             if (timestamps[$1]) {
