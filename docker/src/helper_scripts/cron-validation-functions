@@ -12,6 +12,8 @@
 validate_cron_expression() {
     local cron_expression="$1"
     # Regex pattern for cron validation
+    # https://stackoverflow.com/a/63729682
+    # https://regex101.com/r/RtLgqG
     local regex='^((((\d+,)+\d+|(\d+(\/|-|#)\d+)|\d+L?|\*(\/\d+)?|L(-\d+)?|\?|[A-Z]{3}(-[A-Z]{3})?) ?){5,7})|(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\d+(ns|us|µs|ms|s|m|h))+)$'
 
     # Test the expression against the regex
