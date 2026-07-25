@@ -16,6 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
+          submodules: true
           token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Setup Git
