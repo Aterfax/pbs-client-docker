@@ -30,6 +30,8 @@ jobs:
           sudo apt install gh -y
       
       - name: Run update script
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           chmod +x ./update_submodule.sh
           ./update_submodule.sh
