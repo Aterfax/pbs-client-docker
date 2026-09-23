@@ -12,6 +12,10 @@ path_to_filename() {
     local path_no_trailing_slash="${path%/}"  # Remove the trailing slash, if any
     local path_no_first_slash="${path_no_trailing_slash#\/}"  # Remove the first slash
     local filename="${path_no_first_slash//\//-}"  # Replace slashes with dashes
+
+    # Sanitize string to strictly match PBS archive name requirement.
+    filename="${filename//[^a-zA-Z0-9_-]/_}"
+
     echo "${filename}"
 }
 
