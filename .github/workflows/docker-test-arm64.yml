@@ -39,15 +39,11 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       # Build ARM64 DEBs
-      # Add temporary CC_x86_64_unknown_linux_gnu var.
       - name: Build ARM64 packages
-        env:
-          CC_x86_64_unknown_linux_gnu: /usr/bin/gcc
         run: |
           options="${PACKAGE}"
           docker buildx build \
             -o proxmox-backup-arm64/packages \
-            --build-arg CC_x86_64_unknown_linux_gnu="${CC_x86_64_unknown_linux_gnu}" \
             --build-arg buildoptions="cross github ${options}" \
             --build-arg baseimage=${BASEIMAGE} \
             --platform linux/amd64 \
