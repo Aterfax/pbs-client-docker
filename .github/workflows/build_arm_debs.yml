@@ -31,7 +31,7 @@ jobs:
 
       # Enable QEMU for cross-build
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
 
       # Enable Docker Buildx
       - name: Set up Docker Buildx
