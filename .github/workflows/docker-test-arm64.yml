@@ -41,6 +41,7 @@ jobs:
       # Build ARM64 DEBs
       - name: Build ARM64 packages
         run: |
+          export CC_x86_64_unknown_linux_gnu=/usr/bin/gcc
           options="${PACKAGE}"
           docker buildx build \
             -o proxmox-backup-arm64/packages \
